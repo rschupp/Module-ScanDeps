@@ -579,6 +579,8 @@ sub scan_deps_runtime {
             $first_flag = 0;
         }
 
+        # XXX only retains data from last execute ...  Why? I suspect
+        # the above loop was added later.  Needs test cases --Eric
         my $rv_sub = _make_rv($inchash, $dl_shared_objects, $incarray);
         _merge_rv($rv_sub, $rv);
     }
@@ -970,6 +972,7 @@ sub _execute {
     unlink("$fname.out");
 }
 
+# create a new hashref, applying fixups
 sub _make_rv {
     my ($inchash, $dl_shared_objects, $inc_array) = @_;
 
@@ -1033,6 +1036,7 @@ sub _gettype {
     return 'data';
 }
 
+# merge all keys from $rv_sub into the $rv mega-ref
 sub _merge_rv {
     my ($rv_sub, $rv) = @_;
 
