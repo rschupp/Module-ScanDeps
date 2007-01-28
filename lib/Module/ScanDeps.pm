@@ -979,6 +979,8 @@ sub _make_rv {
     my $rv = {};
     my @newinc = map(quotemeta($_), @$inc_array);
     my $inc = join('|', sort { length($b) <=> length($a) } @newinc);
+    # don't pack lib/c:/ or lib/C:/
+    $inc = qr/$inc/i if(is_insensitive_fs());
 
     require File::Spec;
 
