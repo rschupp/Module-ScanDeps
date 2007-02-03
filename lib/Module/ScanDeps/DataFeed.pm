@@ -1,7 +1,7 @@
 package Module::ScanDeps::DataFeed;
 # No compile time deps!
 #use strict; 
-$Module::ScanDeps::DataFeed::VERSION = '0.08';
+$Module::ScanDeps::DataFeed::VERSION = '0.09';
 
 =head1 NAME
 
