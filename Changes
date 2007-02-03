@@ -1,3 +1,7 @@
+[Changes for 0.72 - 2007-02-03]
+* Case-insensitive @INC removal for case-insensitive
+  filesystems (Eric Wilhelm)
+
 [Changes for 0.71 - 2007-01-04]
 * Added special cases for
   Catalyst
