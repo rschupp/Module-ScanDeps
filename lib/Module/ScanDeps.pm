@@ -373,6 +373,7 @@ my %Preload;
     'XMLRPC/Lite.pm' => sub {
         _glob_in_inc('XMLRPC/Transport', 1),;
     },
+    'YAML.pm' => [qw( YAML/Loader.pm YAML/Dumper.pm )],
     'diagnostics.pm' => sub {
         # shamelessly taken and adapted from diagnostics.pm
         use Config;
