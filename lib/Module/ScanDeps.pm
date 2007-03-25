@@ -4,7 +4,7 @@ use 5.004;
 use strict;
 use vars qw( $VERSION @EXPORT @EXPORT_OK $CurrentPackage @IncludeLibs );
 
-$VERSION   = '0.72';
+$VERSION   = '0.73';
 @EXPORT    = qw( scan_deps scan_deps_runtime );
 @EXPORT_OK = qw( scan_line scan_chunk add_deps scan_deps_runtime );
 
@@ -293,7 +293,7 @@ my %Preload;
     'Mail/Audit.pm'                => 'sub',
     'Math/BigInt.pm'                => 'sub',
     'Math/BigFloat.pm'              => 'sub',
-	'Math/Symbolic.pm'              => 'sub',
+    'Math/Symbolic.pm'              => 'sub',
     'Module/Build.pm'               => 'sub',
     'Module/Pluggable.pm'           => sub {
         _glob_in_inc('$CurrentPackage/Plugin', 1);
@@ -670,7 +670,10 @@ sub scan_chunk {
             return $1 if /(?:^|\s)(?:use|no|require)\s+([\w:\.\-\\\/\"\']*)/;
         }
 
-        return "File/Glob.pm" if /<[^>]*[^\$\w>][^>]*>/;
+        if (/(<[^>]*[^\$\w>][^>]*>)/) {
+            my $diamond = $1;
+            return "File/Glob.pm" if $diamond =~ /[*?\[\]{}~\\]/;
+        }
         return "DBD/$1.pm"    if /\b[Dd][Bb][Ii]:(\w+):/;
         if (/(?:(:encoding)|\b(?:en|de)code)\(\s*['"]?([-\w]+)/) {
             my $mod = _find_encoding($2);
