@@ -5,8 +5,8 @@ use strict;
 use warnings;
 
 use Test::More qw(no_plan); # no_plan because the number of objects in the dependency tree (and hence the number of tests) can change
-use T::Utils;
-use lib qw(t/data/pluggable);
+use lib qw(t t/data/pluggable);
+use Utils;
 
 if (eval {require Module::Pluggable}) {
    my $rv = scan_deps(

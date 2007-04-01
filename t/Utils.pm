@@ -1,4 +1,4 @@
-package T::Utils;
+package Utils;
 
 use strict;
 use warnings;

@@ -5,8 +5,8 @@ use warnings;
 
 use Test::More tests => 387;
 
-use T::Utils;
-use lib qw(t/data/static);
+use lib qw(t t/data/static);
+use Utils;
 
 
 ##############################################################

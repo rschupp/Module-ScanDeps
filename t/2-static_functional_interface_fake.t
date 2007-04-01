@@ -4,9 +4,9 @@ use strict;
 use warnings;
 
 use Test::More tests => 224;
-use T::Utils;
+use lib qw(t t/data/static);
+use Utils;
 
-use lib qw(t/data/static);
 
 
 ##############################################################
