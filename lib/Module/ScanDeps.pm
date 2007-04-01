@@ -4,7 +4,7 @@ use 5.004;
 use strict;
 use vars qw( $VERSION @EXPORT @EXPORT_OK $CurrentPackage @IncludeLibs );
 
-$VERSION   = '0.73';
+$VERSION   = '0.74';
 @EXPORT    = qw( scan_deps scan_deps_runtime );
 @EXPORT_OK = qw( scan_line scan_chunk add_deps scan_deps_runtime );
 
@@ -438,12 +438,30 @@ my %Preload;
 
 # }}}
 
+sub _path_to_filename {
+    my $file = shift @_;
+    my ($vol, $dir, $key) = File::Spec->splitpath($file);
+    return $key;
+}
+
 my $Keys = 'files|keys|recurse|rv|skip|first|execute|compile|warn_missing';
 sub scan_deps {
     my %args = (
         rv => {},
         (@_ and $_[0] =~ /^(?:$Keys)$/o) ? @_ : (files => [@_], recurse => 1)
     );
+
+    if (!defined($args{keys})) { 
+        $args{keys} = [map {_path_to_filename($_)} @{$args{files}}]
+    }
+
+    my ($type, $path);
+    foreach my $input_file (@{$args{files}}) {
+        $type = 'module';
+        $type = 'data' unless $input_file =~ /\.p[mh]$/io;
+        $path = $input_file;
+        _add_info($args{rv}, _path_to_filename($path), $path, undef, $type);
+    }
 
     scan_deps_static(\%args);
 
@@ -503,9 +521,9 @@ sub scan_deps_static {
 
                 add_deps(
                     used_by => $key,
-                    rv      => $rv,
+                    rv      => $args->{rv},
                     modules => [$pm],
-                    skip    => $skip,
+                    skip    => $args->{skip},
                     warn_missing => $args->{warn_missing},
                 );
 
@@ -513,9 +531,9 @@ sub scan_deps_static {
 
                 add_deps(
                     used_by => $key,
-                    rv      => $rv,
+                    rv      => $args->{rv},
                     modules => $preload,
-                    skip    => $skip,
+                    skip    => $args->{skip},
                     warn_missing => $args->{warn_missing},
                 );
             }
@@ -615,8 +633,7 @@ sub scan_line {
 
         if (my ($libs) = /\b(?:use\s+lib\s+|(?:unshift|push)\W+\@INC\W+)(.+)/)
         {
-            my $archname =
-              defined($Config{archname}) ? $Config{archname} : '';
+            my $archname = defined($Config{archname}) ? $Config{archname} : '';
             my $ver = defined($Config{version}) ? $Config{version} : '';
             foreach (grep(/\w/, split(/["';() ]/, $libs))) {
                 unshift(@INC, "$_/$ver")           if -d "$_/$ver";
@@ -728,6 +745,10 @@ sub _add_info {
     my ($rv, $module, $file, $used_by, $type) = @_;
     return unless defined($module) and defined($file);
 
+    # Ensure file is always absolute
+    $file = File::Spec->rel2abs($file);
+    $file =~ s|\\|\/|go;
+
     $rv->{$module} ||= {
         file => $file,
         key  => $module,
@@ -740,26 +761,24 @@ sub _add_info {
       and !grep { $_ eq $used_by } @{ $rv->{$module}{used_by} };
 }
 
+# This subroutine relies on not being called for modules that should be skipped
 sub add_deps {
     my %args =
       ((@_ and $_[0] =~ /^(?:modules|rv|used_by|warn_missing)$/)
         ? @_
         : (rv => (ref($_[0]) ? shift(@_) : undef), modules => [@_]));
 
-    my $rv   = $args{rv}   || {};
-    my $skip = $args{skip} || {};
+    my $rv = $args{rv}   || {};
     my $used_by = $args{used_by};
 
     foreach my $module (@{ $args{modules} }) {
-        if (exists $rv->{$module}) {
-            _add_info($rv, undef, undef, $used_by, undef);
-            next;
-        }
-
         my $file = _find_in_inc($module)
           or _warn_of_missing_module($module, $args{warn_missing}), next;
-        next if $skip->{$file};
-        next if is_insensitive_fs() and $skip->{lc($file)};
+
+        if (exists $rv->{$module}) {
+            _add_info($rv, $module, $file, $used_by, undef);
+            next;
+        }
 
         my $type = 'module';
         $type = 'data' unless $file =~ /\.p[mh]$/i;
@@ -769,8 +788,6 @@ sub add_deps {
             my ($path, $basename) = ($1, $2);
 
             foreach (_glob_in_inc("auto/$path")) {
-                next if $skip->{$_->{file}};
-                next if is_insensitive_fs() and $skip->{lc($_->{file})};
                 next if $_->{file} =~ m{\bauto/$path/.*/};  # weed out subdirs
                 next if $_->{name} =~ m/(?:^|\/)\.(?:exists|packlist)$/;
                 my $ext = lc($1) if $_->{name} =~ /(\.[^.]+)$/;
@@ -872,7 +889,7 @@ sub calculate_info {
 
     my $info = {
         main => {  file     => $self->{main}{file},
-            store_as => $self->{main}{key},
+                   store_as => $self->{main}{key},
         },
     };
 
@@ -890,6 +907,7 @@ sub calculate_info {
     foreach my $key (sort keys %{$rv}) {
         my $val = $rv->{$key};
         if ($cache{ $val->{key} }) {
+            defined($val->{used_by}) or next;
             push @{ $info->{ $val->{type} }->{ $val->{key} }->{used_by} },
               @{ $val->{used_by} };
         }
