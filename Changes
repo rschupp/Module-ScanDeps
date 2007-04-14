@@ -1,4 +1,4 @@
-[Changes for 0.74 - 2007-03-28]
+[Changes for 0.73_01 - 2007-03-28]
 * Fixed bug "scan_deps doesn't show ALL the dependencies"
 * Ensured all file entries are given by absolute paths
 * Added a number of test artificial dependency trees as test data mainly for
