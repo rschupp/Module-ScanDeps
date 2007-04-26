@@ -19,6 +19,7 @@ if (eval {require Module::Pluggable}) {
 
 } else {
    diag("Module::Pluggable not installed, skipping all tests");
+   pass("Marking test as passed because Module::Pluggable is not available.");
 }
 
 __END__
