@@ -1,4 +1,8 @@
-[Changes for 0.75 - 2007-05-13]
+[Changes for 0.75 - 2007-05-18]
+* Added exported path_to_inc_name subroutine (Adrian Issott)
+* Added Module::Build::ModuleInfo dependency (Adrian Issott)
+* Fixed bug where input files weren't scoped properly
+
 * Add new "check-for-dynaloader" test. (Eric Wilhelm)
 
 [Changes for 0.74 - 2007-04-26]

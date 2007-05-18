@@ -6,7 +6,7 @@ use vars qw( $VERSION @EXPORT @EXPORT_OK $CurrentPackage @IncludeLibs );
 
 $VERSION   = '0.74';
 @EXPORT    = qw( scan_deps scan_deps_runtime );
-@EXPORT_OK = qw( scan_line scan_chunk add_deps scan_deps_runtime );
+@EXPORT_OK = qw( scan_line scan_chunk add_deps scan_deps_runtime path_to_inc_name );
 
 use Config;
 use Exporter;
@@ -25,6 +25,7 @@ use File::Temp ();
 use File::Spec ();
 use File::Basename ();
 use FileHandle;
+use Module::Build::ModuleInfo;
 
 =head1 NAME
 
@@ -164,6 +165,16 @@ modules that cannot be found are skipped.
 
 This function populates the C<%rv> hash with module/filename pairs, and
 returns a reference to it.
+
+=head2 B<path_to_inc_name>
+
+    $perl_name = path_to_inc_name($path)
+
+Assumes C<$path> refers to a perl file and does it's best to return the
+name as it would appear in %INC. 
+
+E.g. if C<$path> = perl/site/lib/Module/ScanDeps.pm then C<$perl_name>
+will be Module/ScanDeps.pm.
 
 =head1 NOTES
 
@@ -438,10 +449,21 @@ my %Preload;
 
 # }}}
 
-sub _path_to_filename {
-    my $file = shift @_;
-    my ($vol, $dir, $key) = File::Spec->splitpath($file);
-    return $key;
+sub path_to_inc_name($) {
+    my $path = shift @_;
+    my $inc_name;
+
+    if ($path =~ m/\.pm$/io) {
+        die "$path doesn't exist" unless (-f $path);
+        my $module_info = Module::Build::ModuleInfo->new_from_file($path);
+        die "Module::Build::ModuleInfo error" unless defined($module_info);
+        $inc_name = $module_info->name().'.pm';
+        $inc_name =~ s|\:\:|\/|og;
+    } else {
+        (my $vol, my $dir, $inc_name) = File::Spec->splitpath($path);
+    }
+
+    return $inc_name;
 }
 
 my $Keys = 'files|keys|recurse|rv|skip|first|execute|compile|warn_missing';
@@ -452,7 +474,7 @@ sub scan_deps {
     );
 
     if (!defined($args{keys})) { 
-        $args{keys} = [map {_path_to_filename($_)} @{$args{files}}]
+        $args{keys} = [map {path_to_inc_name($_)} @{$args{files}}]
     }
 
     my ($type, $path);
@@ -460,7 +482,7 @@ sub scan_deps {
         $type = 'module';
         $type = 'data' unless $input_file =~ /\.p[mh]$/io;
         $path = $input_file;
-        _add_info($args{rv}, _path_to_filename($path), $path, undef, $type);
+        _add_info($args{rv}, path_to_inc_name($path), $path, undef, $type);
     }
 
     scan_deps_static(\%args);
@@ -1119,7 +1141,7 @@ sub _warn_of_missing_module {
     my $warn = shift;
     return if not $warn;
     return if not $module =~ /\.p[ml]$/;
-    print "# Could not find source file '$module' in \@INC or \@IncludeLibs. Skipping it.\n"
+    warn "# Could not find source file '$module' in \@INC or \@IncludeLibs. Skipping it.\n"
       if not -f $module;
 }
 

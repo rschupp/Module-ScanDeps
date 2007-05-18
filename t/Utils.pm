@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use vars qw( $VERSION @ISA @EXPORT );
 require Exporter;
+use Module::ScanDeps qw(path_to_inc_name);
 
 use Test::More;
 
@@ -19,12 +20,6 @@ sub import {
 
     $test->exported_to($pack);
     $self->export_to_level(1, $self, @EXPORT);
-}
-
-sub _path_to_filename {
-    my $file = shift @_;
-    my ($vol, $dir, $key) = File::Spec->splitpath($file);
-    return $key;
 }
 
 sub generic_scandeps_rv_test {
@@ -44,7 +39,7 @@ sub generic_scandeps_rv_test {
     $test->ok(ref($rv) eq "HASH", "\$rv is a ref") or return;
 
     # check all input files and known deps correspond to an entry in rv
-    map {$_ = _path_to_filename($_)} @input_keys;
+    map {$_ = path_to_inc_name($_)} @input_keys;
     map {$_ =~ s|\\|\/|go} (@input_keys, @known_deps);
     $test->ok(exists $rv->{$_}, "$_ is in rv") foreach (@input_keys, @known_deps);
 
