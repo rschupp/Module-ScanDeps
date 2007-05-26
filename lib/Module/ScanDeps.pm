@@ -168,10 +168,11 @@ returns a reference to it.
 
 =head2 B<path_to_inc_name>
 
-    $perl_name = path_to_inc_name($path)
+    $perl_name = path_to_inc_name($path, $warn)
 
 Assumes C<$path> refers to a perl file and does it's best to return the
-name as it would appear in %INC. 
+name as it would appear in %INC. Returns undef if no match was found 
+and a prints a warning to STDOUT if C<$warn> is true.
 
 E.g. if C<$path> = perl/site/lib/Module/ScanDeps.pm then C<$perl_name>
 will be Module/ScanDeps.pm.
@@ -449,16 +450,22 @@ my %Preload;
 
 # }}}
 
-sub path_to_inc_name($) {
-    my $path = shift @_;
+sub path_to_inc_name($$) {
+    my $path = shift;
+    my $warn = shift;
     my $inc_name;
 
     if ($path =~ m/\.pm$/io) {
         die "$path doesn't exist" unless (-f $path);
         my $module_info = Module::Build::ModuleInfo->new_from_file($path);
         die "Module::Build::ModuleInfo error" unless defined($module_info);
-        $inc_name = $module_info->name().'.pm';
-        $inc_name =~ s|\:\:|\/|og;
+        $inc_name = $module_info->name();
+        if (defined($inc_name)) {
+            $inc_name =~ s|\:\:|\/|og;
+            $inc_name .= '.pm';
+        } else {
+            print "# Couldn't find include name for $path\n" if $warn;
+        }
     } else {
         (my $vol, my $dir, $inc_name) = File::Spec->splitpath($path);
     }
@@ -474,7 +481,7 @@ sub scan_deps {
     );
 
     if (!defined($args{keys})) { 
-        $args{keys} = [map {path_to_inc_name($_)} @{$args{files}}]
+        $args{keys} = [map {path_to_inc_name($_, $args{warn_missing})} @{$args{files}}]
     }
 
     my ($type, $path);
@@ -482,7 +489,7 @@ sub scan_deps {
         $type = 'module';
         $type = 'data' unless $input_file =~ /\.p[mh]$/io;
         $path = $input_file;
-        _add_info($args{rv}, path_to_inc_name($path), $path, undef, $type);
+        _add_info($args{rv}, path_to_inc_name($path, $args{warn_missing}), $path, undef, $type);
     }
 
     scan_deps_static(\%args);
@@ -1141,7 +1148,7 @@ sub _warn_of_missing_module {
     my $warn = shift;
     return if not $warn;
     return if not $module =~ /\.p[ml]$/;
-    warn "# Could not find source file '$module' in \@INC or \@IncludeLibs. Skipping it.\n"
+    print "# Could not find source file '$module' in \@INC or \@IncludeLibs. Skipping it.\n"
       if not -f $module;
 }
 

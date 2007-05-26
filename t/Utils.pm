@@ -39,7 +39,7 @@ sub generic_scandeps_rv_test {
     $test->ok(ref($rv) eq "HASH", "\$rv is a ref") or return;
 
     # check all input files and known deps correspond to an entry in rv
-    map {$_ = path_to_inc_name($_)} @input_keys;
+    map {$_ = path_to_inc_name($_, 1)} @input_keys;
     map {$_ =~ s|\\|\/|go} (@input_keys, @known_deps);
     $test->ok(exists $rv->{$_}, "$_ is in rv") foreach (@input_keys, @known_deps);
 
