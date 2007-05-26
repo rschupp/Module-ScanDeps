@@ -458,7 +458,7 @@ sub path_to_inc_name($$) {
     if ($path =~ m/\.pm$/io) {
         die "$path doesn't exist" unless (-f $path);
         my $module_info = Module::Build::ModuleInfo->new_from_file($path);
-        die "Module::Build::ModuleInfo error" unless defined($module_info);
+        die "Module::Build::ModuleInfo error: $!" unless defined($module_info);
         $inc_name = $module_info->name();
         if (defined($inc_name)) {
             $inc_name =~ s|\:\:|\/|og;
@@ -728,8 +728,8 @@ sub scan_chunk {
         }
         return $1 if /(?:^|\s)(?:do|require)\s+[^"]*"(.*?)"/;
         return $1 if /(?:^|\s)(?:do|require)\s+[^']*'(.*?)'/;
-        return $1 if /[^\$]\b([\w:]+)->\w/ and $1 ne 'Tk';
-        return $1 if /\b(\w[\w:]*)::\w+\(/;
+        return $1 if /[^\$]\b([\w:]+)->\w/ and $1 ne 'Tk' and $1 ne 'shift';
+        return $1 if /\b(\w[\w:]*)::\w+\(/ and $1 ne 'main' and $1 ne 'SUPER';
 
         if ($SeenTk) {
             my @modules;
