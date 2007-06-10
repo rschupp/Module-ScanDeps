@@ -319,15 +319,15 @@ my %Preload;
         _glob_in_inc('PDF/API2/Basic/TTF', 1);
     },
     'PDF/Writer.pm'                 => 'sub',
-    'POE'                           => [ qw(
+    'POE.pm'                           => [ qw(
         POE/Kernel.pm POE/Session.pm
     ) ],
-    'POE/Kernel.pm'                    => [
-        map "POE/Resource/$_.pm", qw(
-            Aliases Events Extrefs FileHandles
-            SIDs Sessions Signals Statistics
-        )
-    ],
+    'POE/Kernel.pm'                    => sub {
+	_glob_in_inc('POE/XS/Resource', 1),
+	_glob_in_inc('POE/Resource', 1),
+	_glob_in_inc('POE/XS/Loop', 1),
+	_glob_in_inc('POE/Loop', 1),
+    },
     'Parse/AFP.pm'                  => 'sub',
     'Parse/Binary.pm'               => 'sub',
     'PerlIO.pm'                     => [ 'PerlIO/scalar.pm' ],
