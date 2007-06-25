@@ -417,6 +417,9 @@ my %Preload;
 
         return 'pod/perldiag.pod';
     },
+    'threads/shared.pm' => [qw( attributes.pm )],
+    	# anybody using threads::shared is likely to declare variables
+	# with attribute :shared
     'utf8.pm' => [
         'utf8_heavy.pl', do {
             my $dir = 'unicore';
