@@ -535,13 +535,11 @@ sub scan_deps_static {
             foreach my $pm (scan_line($line)) {
                 last LINE if $pm eq '__END__';
                 
-                # Skip Tk hits from Term::ReadLine
+                # Skip Tk hits from Term::ReadLine and Tcl::Tk
                 my $pathsep = qr/\/|\\|::/;
-                if (
-                    $file =~ /${pathsep}Term${pathsep}ReadLine.pm$/
-                    and $pm =~ /^Tk\b/
-                ) {
-                    next;
+                if ($pm =~ /^Tk\b/) {
+                  next if $file =~ /(?:^|${pathsep})Term${pathsep}ReadLine\.pm$/;
+                  next if $file =~ /(?:^|${pathsep})Tcl${pathsep}Tk\W/;
                 }
 
                 if ($pm eq '__POD__') {
@@ -550,6 +548,7 @@ sub scan_deps_static {
                 }
 
                 $pm = 'CGI/Apache.pm' if /^Apache(?:\.pm)$/;
+
 
                 add_deps(
                     used_by => $key,
