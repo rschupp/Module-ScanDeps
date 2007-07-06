@@ -547,8 +547,7 @@ sub scan_deps_static {
                     next LINE;
                 }
 
-                $pm = 'CGI/Apache.pm' if /^Apache(?:\.pm)$/;
-
+                $pm = 'CGI/Apache.pm' if $file =~ /^Apache(?:\.pm)$/;
 
                 add_deps(
                     used_by => $key,
