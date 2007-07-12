@@ -1132,7 +1132,12 @@ sub _merge_rv {
 
 sub _not_dup {
     my ($key, $rv1, $rv2) = @_;
-    (_abs_path($rv1->{$key}{file}) ne _abs_path($rv2->{$key}{file}));
+    if (File::Spec->case_tolerant()) {
+        return lc(_abs_path($rv1->{$key}{file})) ne lc(_abs_path($rv2->{$key}{file}));
+    }
+    else {
+        return _abs_path($rv1->{$key}{file}) ne _abs_path($rv2->{$key}{file});
+    }
 }
 
 sub _abs_path {
