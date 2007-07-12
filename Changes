@@ -1,6 +1,7 @@
 [Changes for 0.76 - 2007-07-06]
 * Fix special case for Term::ReadLine (should not rope in Tk)
 * New special case for Tcl::Tk (should not rope in Tk either!)
+* New special case for threads::shared ==> rope in attributes.pm
 
 [Changes for 0.75 - 2007-06-24]
 * Fix special cases for POE. (Roderich Schupp)
