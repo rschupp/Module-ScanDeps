@@ -779,6 +779,17 @@ sub _add_info {
     $file = File::Spec->rel2abs($file);
     $file =~ s|\\|\/|go;
 
+    # Avoid duplicates that can arise due to case differences that don't actually 
+    # matter on a case tolerant system
+    if (File::Spec->case_tolerant()) {
+        foreach my $key (keys %$rv) {
+            if (lc($key) eq lc($module)) {
+                $module = $key;
+                last;
+            }
+        }
+    }
+
     $rv->{$module} ||= {
         file => $file,
         key  => $module,
@@ -788,7 +799,8 @@ sub _add_info {
     push @{ $rv->{$module}{used_by} }, $used_by
       if defined($used_by)
       and $used_by ne $module
-      and !grep { $_ eq $used_by } @{ $rv->{$module}{used_by} };
+      and ( (!File::Spec->case_tolerant() && !grep { $_ eq $used_by } @{ $rv->{$module}{used_by} })
+         or ( File::Spec->case_tolerant() && !grep { lc($_) eq lc($used_by) } @{ $rv->{$module}{used_by} }));
 }
 
 # This subroutine relies on not being called for modules that should be skipped
