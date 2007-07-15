@@ -122,7 +122,7 @@ If C<$execute> is an array reference, runs the files contained
 in it instead of C<@files>.
 
 Additionally, an option C<warn_missing> is recognized. If set to true,
-C<scan_deps> issues a warning to STDOUT for every module file that the
+C<scan_deps> issues a warning to STDERR for every module file that the
 scanned code depends but that wasn't found. Please note that this may
 also report numerous false positives. That is why by default, the heuristic
 silently drops all dependencies it cannot find.
@@ -172,7 +172,7 @@ returns a reference to it.
 
 Assumes C<$path> refers to a perl file and does it's best to return the
 name as it would appear in %INC. Returns undef if no match was found 
-and a prints a warning to STDOUT if C<$warn> is true.
+and a prints a warning to STDERR if C<$warn> is true.
 
 E.g. if C<$path> = perl/site/lib/Module/ScanDeps.pm then C<$perl_name>
 will be Module/ScanDeps.pm.
@@ -467,7 +467,7 @@ sub path_to_inc_name($$) {
             $inc_name =~ s|\:\:|\/|og;
             $inc_name .= '.pm';
         } else {
-            print "# Couldn't find include name for $path\n" if $warn;
+            warn "# Couldn't find include name for $path\n" if $warn;
         }
     } else {
         (my $vol, my $dir, $inc_name) = File::Spec->splitpath($path);
@@ -1166,7 +1166,7 @@ sub _warn_of_missing_module {
     my $warn = shift;
     return if not $warn;
     return if not $module =~ /\.p[ml]$/;
-    print "# Could not find source file '$module' in \@INC or \@IncludeLibs. Skipping it.\n"
+    warn "# Could not find source file '$module' in \@INC or \@IncludeLibs. Skipping it.\n"
       if not -f $module;
 }
 

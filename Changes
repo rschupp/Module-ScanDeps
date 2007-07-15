@@ -1,8 +1,9 @@
-[Changes for 0.76 - 2007-07-13]
+[Changes for 0.76 - 2007-07-15]
 * Fix special case for Term::ReadLine (should not rope in Tk)
 * New special case for Tcl::Tk (should not rope in Tk either!)
 * New special case for threads::shared ==> rope in attributes.pm
 * Fix to avoid duplicated entries that can arise due to case differences that don't actually matter on case-tolerant systems (Adrian Issott)
+* M::SD warnings now go to STDERR not STDOUT (Adrian Issott)
 
 [Changes for 0.75 - 2007-06-24]
 * Fix special cases for POE. (Roderich Schupp)
