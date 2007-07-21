@@ -470,6 +470,7 @@ sub path_to_inc_name($$) {
             warn "# Couldn't find include name for $path\n" if $warn;
         }
     } else {
+        # Bad solution!
         (my $vol, my $dir, $inc_name) = File::Spec->splitpath($path);
     }
 
@@ -484,7 +485,7 @@ sub scan_deps {
     );
 
     if (!defined($args{keys})) { 
-        $args{keys} = [map {path_to_inc_name($_, $args{warn_missing})} @{$args{files}}]
+        $args{keys} = [map {path_to_inc_name($_, $args{warn_missing})} @{$args{files}}];
     }
 
     my ($type, $path);
