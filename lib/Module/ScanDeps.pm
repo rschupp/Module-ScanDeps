@@ -493,13 +493,25 @@ sub scan_deps {
         $type = 'module';
         $type = 'data' unless $input_file =~ /\.p[mh]$/io;
         $path = $input_file;
-        _add_info(
-            rv      => $args{rv},
-            module  => path_to_inc_name($path, $args{warn_missing}),
-            file    => $path,
-            used_by => undef,
-            type    => $type,
-        );
+        if ($type eq 'module') {
+            # necessary because add_deps does the search for shared libraries and such
+            add_deps(
+                used_by => undef,
+                rv => $args{rv},
+                modules => [path_to_inc_name($path, $args{warn_missing})],
+                skip => undef,
+                warn_missing => $args{warn_missing},
+            );
+        }
+        else {
+            _add_info(
+                rv      => $args{rv},
+                module  => path_to_inc_name($path, $args{warn_missing}),
+                file    => $path,
+                used_by => undef,
+                type    => $type,
+            );
+        }
     }
 
     scan_deps_static(\%args);
