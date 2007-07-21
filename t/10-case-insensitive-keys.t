@@ -47,8 +47,8 @@ my $expected_rv1 =
 
 # Functional i/f
 my $rv1 = scan_deps(@roots1);
-use Data::Dump qw(dump);
-print dump($rv1), "\n";
+#use Data::Dump qw(dump);
+#print dump($rv1), "\n";
 
 compare_scandeps_rvs($rv1, $expected_rv1, \@roots1);
 
