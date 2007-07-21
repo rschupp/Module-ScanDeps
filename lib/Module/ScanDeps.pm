@@ -4,7 +4,7 @@ use 5.004;
 use strict;
 use vars qw( $VERSION @EXPORT @EXPORT_OK $CurrentPackage @IncludeLibs );
 
-$VERSION   = '0.75';
+$VERSION   = '0.76';
 @EXPORT    = qw( scan_deps scan_deps_runtime );
 @EXPORT_OK = qw( scan_line scan_chunk add_deps scan_deps_runtime path_to_inc_name );
 
@@ -34,7 +34,7 @@ Module::ScanDeps - Recursively scan Perl code for dependencies
 =head1 VERSION
 
 This document describes version 0.76 of Module::ScanDeps, released
-July 13, 2007.
+July 21, 2007.
 
 =head1 SYNOPSIS
 
