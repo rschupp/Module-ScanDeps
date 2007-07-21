@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-$VERSION = '0.71';
+$VERSION = '0.76';
 
 use strict;
 use Config;
@@ -53,10 +53,10 @@ foreach my $key (sort keys %$map) {
     print "# $key [$mod->{type}]\n" if $verbose;
 
     if ($mod->{type} eq 'shared') {
-	$key =~ s!auto/!!;
-	$key =~ s!/[^/]+$!!;
-	$key =~ s!/!::!;
-	$bin{$key}++;
+        $key =~ s!auto/!!;
+        $key =~ s!/[^/]+$!!;
+        $key =~ s!/!::!;
+        $bin{$key}++;
     }
 
     next unless $mod->{type} eq 'module';
@@ -64,13 +64,13 @@ foreach my $key (sort keys %$map) {
     next if $skip{$name};
 
     if ($mod->{file} eq "$Config::Config{privlib}/$key"
-	or $mod->{file} eq "$Config::Config{archlib}/$key") {
-	next unless $core;
+        or $mod->{file} eq "$Config::Config{archlib}/$key") {
+        next unless $core;
 
-	$core{$name}++;
+        $core{$name}++;
     }
     elsif (my $dist = _modtree->{$name}) {
-	$seen{$name} = $dist{$dist->package}++;
+        $seen{$name} = $dist{$dist->package}++;
     }
 
     $len = length($name) if $len < length($name);
@@ -95,9 +95,9 @@ foreach my $mod (sort {
     } else {
         printf "%-${len}s => '0', # ", "'$mod->{name}'";
         my @base = map(_name($_), @{$mod->{used_by}});
-        print $seen{$mod->{name}}	? 'S' : ' ';
-        print $bin{$mod->{name}}	? 'X' : ' ';
-        print $core{$mod->{name}}	? 'C' : ' ';
+        print $seen{$mod->{name}} ? 'S' : ' ';
+        print $bin{$mod->{name}}  ? 'X' : ' ';
+        print $core{$mod->{name}} ? 'C' : ' ';
         print _modtree && !_modtree->{$mod->{name}} ? '?' : ' ';
         print " # ";
         print "@base" if @base;
