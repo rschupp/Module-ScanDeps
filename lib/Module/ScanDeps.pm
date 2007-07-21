@@ -493,7 +493,13 @@ sub scan_deps {
         $type = 'module';
         $type = 'data' unless $input_file =~ /\.p[mh]$/io;
         $path = $input_file;
-        _add_info($args{rv}, path_to_inc_name($path, $args{warn_missing}), $path, undef, $type);
+        _add_info(
+            return_value =>$args{rv},
+            module       => path_to_inc_name($path, $args{warn_missing}),
+            file         => $path,
+            used_by      => undef,
+            type         => $type,
+        );
     }
 
     scan_deps_static(\%args);
@@ -773,7 +779,9 @@ sub _find_encoding {
 }
 
 sub _add_info {
-    my ($rv, $module, $file, $used_by, $type) = @_;
+    my %args = @_;
+    my ($rv, $module, $file, $used_by, $type) = @args{qw/return_value module file used_by type/};
+
     return unless defined($module) and defined($file);
 
     # Ensure file is always absolute
@@ -819,13 +827,17 @@ sub add_deps {
           or _warn_of_missing_module($module, $args{warn_missing}), next;
 
         if (exists $rv->{$module}) {
-            _add_info($rv, $module, $file, $used_by, undef);
+            _add_info( return_value => $rv,      module       => $module,
+                       file         => $file,    used_by      => $used_by,
+                       type         => undef );
             next;
         }
 
         my $type = 'module';
         $type = 'data' unless $file =~ /\.p[mh]$/i;
-        _add_info($rv, $module, $file, $used_by, $type);
+        _add_info( return_value => $rv,   module       => $module,
+                   file         => $file, used_by      => $used_by,
+                   type         => $type );
 
         if ($module =~ /(.*?([^\/]*))\.p[mh]$/i) {
             my ($path, $basename) = ($1, $2);
@@ -839,8 +851,9 @@ sub add_deps {
                 $type = 'autoload' if $ext eq '.ix' or $ext eq '.al';
                 $type ||= 'data';
 
-                _add_info($rv, "auto/$path/$_->{name}", $_->{file}, $module,
-                    $type);
+                _add_info( return_value => $rv,        module       => "auto/$path/$_->{name}",
+                           file         => $_->{file}, used_by      => $module,
+                           type         => $type );
             }
         }
     }
