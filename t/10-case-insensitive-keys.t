@@ -8,7 +8,7 @@ use Test::More;
 if(!File::Spec->case_tolerant()) {
     plan skip_all => 'Test irrelevant on case intolerant systems';
 } else {
-    plan tests => 31;
+    plan tests => 41;
 }
 
 use lib qw(t t/data/case-insensitive-keys);
@@ -37,11 +37,13 @@ my $expected_rv1 =
                       file => generic_abs_path("t/data/case-insensitive-keys/that_case.pl"),
                       key  => "that_case.pl",
                       type => "data",
+                      uses => ["Test.pm"],
                     },
   "this_case.pl" => {
                       file => generic_abs_path("t/data/case-insensitive-keys/this_case.pl"),
                       key  => "this_case.pl",
                       type => "data",
+                      uses => ["Test.pm"],
                     },
 };
 

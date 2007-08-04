@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 25;
+use Test::More tests => 30;
 use lib qw(t t/data/duplicated_entries);
 use Utils;
 
@@ -18,8 +18,9 @@ my $expected_rv =
 {
   "use_scoped_package.pl" => {
                                file => generic_abs_path("t/data/duplicated_entries/use_scoped_package.pl"),
-                               key => "use_scoped_package.pl",
+                               key  => "use_scoped_package.pl",
                                type => "data",
+                               uses => ["Scoped/Package.pm"],
                              },
   "Scoped/Package.pm"     => {
                                file    => generic_abs_path("t/data/duplicated_entries/Scoped/Package.pm"),

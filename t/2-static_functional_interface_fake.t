@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 224;
+use Test::More tests => 302;
 use lib qw(t t/data/static);
 use Utils;
 
@@ -50,12 +50,14 @@ my $expected_rv2 =
                     key     => "chicken.pm",
                     type    => "module",
                     used_by => ["egg.pm"],
+                    uses    => ["egg.pm"],
                   },
   "egg.pm"     => {
-                    file => generic_abs_path("t/data/static/egg.pm"),
-                    key => "egg.pm",
-                    type => "module",
+                    file    => generic_abs_path("t/data/static/egg.pm"),
+                    key     => "egg.pm",
+                    type    => "module",
                     used_by => ["chicken.pm"],
+                    uses    => ["chicken.pm"],
                   },
 };
 
@@ -92,35 +94,41 @@ my $expected_rv3 =
                             key     => "inner_diamond_E.pm",
                             type    => "module",
                             used_by => ["inner_diamond_N.pm"],
+                            uses    => ["inner_diamond_S.pm"],
                           },
   "inner_diamond_N.pm" => {
                             file    => generic_abs_path("t/data/static/inner_diamond_N.pm"),
                             key     => "inner_diamond_N.pm",
                             type    => "module",
                             used_by => ["outer_diamond_N.pm"],
+                            uses    => ["inner_diamond_E.pm", "inner_diamond_W.pm"],
                           },
   "inner_diamond_S.pm" => {
                             file    => generic_abs_path("t/data/static/inner_diamond_S.pm"),
                             key     => "inner_diamond_S.pm",
                             type    => "module",
                             used_by => ["inner_diamond_W.pm", "inner_diamond_E.pm"],
+                            uses    => ["outer_diamond_S.pm"],
                           },
   "inner_diamond_W.pm" => {
                             file    => generic_abs_path("t/data/static/inner_diamond_W.pm"),
                             key     => "inner_diamond_W.pm",
                             type    => "module",
                             used_by => ["inner_diamond_N.pm"],
+                            uses    => ["inner_diamond_S.pm"],
                           },
   "outer_diamond_E.pm" => {
                             file    => generic_abs_path("t/data/static/outer_diamond_E.pm"),
                             key     => "outer_diamond_E.pm",
                             type    => "module",
                             used_by => ["outer_diamond_N.pm"],
+                            uses    => ["outer_diamond_S.pm"],
                           },
   "outer_diamond_N.pm" => {
                             file => generic_abs_path("t/data/static/outer_diamond_N.pm"),
                             key  => "outer_diamond_N.pm",
                             type => "module",
+                            uses => ["inner_diamond_N.pm", "outer_diamond_E.pm", "outer_diamond_W.pm"],
                           },
   "outer_diamond_S.pm" => {
                             file    => generic_abs_path("t/data/static/outer_diamond_S.pm"),
@@ -133,6 +141,7 @@ my $expected_rv3 =
                             key     => "outer_diamond_W.pm",
                             type    => "module",
                             used_by => ["outer_diamond_N.pm"],
+                            uses    => ["outer_diamond_S.pm"],
                           },
 };
 
@@ -162,18 +171,21 @@ my $expected_rv4 =
 {
   "InputA.pl" => {
                    file => generic_abs_path("t/data/static/InputA.pl"),
-                   key => "InputA.pl", 
+                   key  => "InputA.pl",
                    type => "data",
+                   uses => ["TestA.pm", "TestB.pm"],
                  },
   "InputB.pl" => {
                    file => generic_abs_path("t/data/static/InputB.pl"),
-                   key => "InputB.pl",
+                   key  => "InputB.pl",
                    type => "data",
+                   uses => ["TestC.pm"],
                  },
   "InputC.pl" => {
                    file => generic_abs_path("t/data/static/InputC.pl"),
-                   key => "InputC.pl", 
+                   key  => "InputC.pl",
                    type => "data",
+                   uses => ["TestD.pm"],
                  },
   "TestA.pm"  => {
                    file    => generic_abs_path("t/data/static/TestA.pm"),
@@ -192,6 +204,7 @@ my $expected_rv4 =
                    key     => "TestC.pm",
                    type    => "module",
                    used_by => ["InputB.pl"],
+                   uses    => ["TestD.pm"],
                  },
   "TestD.pm"  => {
                    file    => generic_abs_path("t/data/static/TestD.pm"),
@@ -224,15 +237,16 @@ my @roots5 = qw(t/data/static/Duplicator.pl);
 my $expected_rv5 =
 {
   "Duplicated.pm" => {
-                       file => generic_abs_path("t/data/static/Duplicated.pm"),
-                       key => "Duplicated.pm",
-                       type => "module",
+                       file    => generic_abs_path("t/data/static/Duplicated.pm"),
+                       key     => "Duplicated.pm",
+                       type    => "module",
                        used_by => ["Duplicator.pl"],
                      },
   "Duplicator.pl" => {
-                       file    => generic_abs_path("t/data/static/Duplicator.pl"),
-                       key     => "Duplicator.pl",
-                       type    => "data",
+                       file => generic_abs_path("t/data/static/Duplicator.pl"),
+                       key  => "Duplicator.pl",
+                       type => "data",
+                       uses => ["Duplicated.pm"],
                      },
 };
 

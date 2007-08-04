@@ -1,5 +1,6 @@
-[Changes for 0.77 - 2007-07-22]
+[Changes for 0.77 - 2007-08-03]
 * Add support for prefork.pm (similar to how base.pm is detected).
+* Added uses field to hash descriptions returned by scan_deps + tests (Adrian Issott)
 
 [Changes for 0.76 - 2007-07-21]
 * Fix special case for Term::ReadLine (should not rope in Tk)

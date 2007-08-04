@@ -52,9 +52,9 @@ sub generic_scandeps_rv_test {
 
         if (exists($rv->{$key}{used_by})) {
             @used_by = sort @{$rv->{$key}{used_by}};
-            if ($#used_by + 1 > 0) {
+            if (scalar @used_by > 0) {
                 $used_by_ok = 1;
-                if ($#used_by + 1 > 1) {
+                if (scalar @used_by > 1) {
                     for ($i=0; $i<$#used_by; $i++) {
                         if ($used_by[$i] eq $used_by[$i+1]) { # relies on @used_by being sorted earlier
                              $used_by_ok = 0;
@@ -69,13 +69,32 @@ sub generic_scandeps_rv_test {
                     $used_by_ok &= exists($rv->{$used_by});
                 }
                 $test->ok($used_by_ok, "All entries in $key\'s used_by are themselves described in \$rv");
+
+                # check corresponding uses field
+                foreach my $used_by (@used_by) {
+                    if (exists($rv->{$used_by}{uses})) {
+                        $test->ok(scalar(grep { $_ eq $key } @{$rv->{$used_by}{uses}}), "\$rv contains a matching uses field for the used_by entry $used_by for key $key");
+                    } else {
+                        $test->ok(0, "\$rv contains a matching uses field for the used_by entry $used_by for key $key");
+                    }
+                }
             } else {
-                print "array length: $#used_by\n";
                 $test->ok(0, "$key\'s used_by exists and isn't empty");
             }
         } else {
             $test->ok((grep {$_ eq $key} @input_keys) | ($key =~ m/Plugin/o), "used-by not defined so $key must be one of the input files or is a plugin");
         }
+
+        if (exists($rv->{$key}{uses})) {
+            # check corresponding used_by field
+            foreach my $uses (@{$rv->{$key}{uses}}) {
+                if (exists($rv->{$uses}{used_by})) {
+                    $test->ok(scalar(grep { $_ eq $key } @{$rv->{$uses}{used_by}}), "\$rv contains a matching used_by field for the uses entry $uses for key $key");
+                } else {
+                    $test->ok(0, "\$rv contains a matching used_by field for the uses entry $uses for key $key");
+                }
+            }
+         }
     }
 }
 
@@ -86,7 +105,9 @@ sub compare_scandeps_rvs {
     my @input_keys = @$array_ref;
 
     my (@used_by_test, @used_by_match);
-    my ($used_by_ok, $compare_ok, $i);
+    my (@uses_test, @uses_match);
+    my ($used_by_ok, $uses_ok);
+    my ($compare_ok, $i);
 
     generic_scandeps_rv_test($rv_to_match, \@input_keys, []); # validate test data
 
@@ -94,7 +115,7 @@ sub compare_scandeps_rvs {
 
     my @rv_to_match_keys = sort keys %{$rv_to_match};
     my @rv_to_test_keys  = sort keys %{$rv_to_test};
-    $test->cmp_ok($#rv_to_test_keys+1, '==', $#rv_to_match_keys+1, "Number of keys in \$rv_to_test == Number of keys in \$rv_to_match") or return;
+    $test->cmp_ok(scalar @rv_to_test_keys, '==', scalar @rv_to_match_keys, "Number of keys in \$rv_to_test == Number of keys in \$rv_to_match") or return;
     $compare_ok = 1;
     for ($i=0; $i<=$#rv_to_match_keys; $i++) {
         $compare_ok &= ($rv_to_match_keys[$i] eq $rv_to_test_keys[$i]);
@@ -111,13 +132,27 @@ sub compare_scandeps_rvs {
 
             @used_by_test  = sort @{$rv_to_test->{$key}{used_by}}; # order isn't important
             @used_by_match = sort @{$rv_to_match->{$key}{used_by}}; # order isn't important   
-            $test->cmp_ok($#used_by_test+1, '==', $#used_by_match+1, "For $key: number of used_by in \$rv_to_test == Number of used_by in \$rv_to_match") or next;
+            $test->cmp_ok(scalar @used_by_test, '==', scalar @used_by_match, "For $key: number of used_by in \$rv_to_test == Number of used_by in \$rv_to_match") or next;
 
             $used_by_ok = 1;
-            for ($i=0; $i<=$#used_by_match; $i++) {
+            for ($i=0; $i < scalar @used_by_match; $i++) {
                 $used_by_ok &= ($used_by_match[$i] eq $used_by_test[$i]);
             }
             $test->ok($used_by_ok, "For $key: used_by in \$rv_to_test all eq used_by in \$rv_to_match");
+        }
+
+        if (exists($rv_to_match->{$key}{uses})) {
+            $test->ok(exists($rv_to_test->{$key}{uses}), "For $key: uses exists as expected") or next;
+
+            @uses_test  = sort @{$rv_to_test->{$key}{uses}}; # order isn't important
+            @uses_match = sort @{$rv_to_match->{$key}{uses}}; # order isn't important
+            $test->cmp_ok(scalar @uses_test, '==', scalar @uses_match, "For $key: number of uses in \$rv_to_test == Number of uses in \$rv_to_match") or next;
+
+            $uses_ok = 1;
+            for ($i=0; $i < scalar @uses_match; $i++) {
+                $uses_ok &= ($uses_match[$i] eq $uses_test[$i]);
+            }
+            $test->ok($uses_ok, "For $key: uses in \$rv_to_test all eq uses in \$rv_to_match");
         }
     }
 }

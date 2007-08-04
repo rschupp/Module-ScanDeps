@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 387;
+use Test::More tests => 481;
 
 use lib qw(t t/data/static);
 use Utils;
@@ -57,6 +57,7 @@ my $expected_rv1 =
                             file => generic_abs_path("t/data/static/outer_diamond_N.pm"),
                             key  => "outer_diamond_N.pm",
                             type => "module",
+                            uses => ["inner_diamond_N.pm", "outer_diamond_E.pm", "outer_diamond_W.pm"],
                           },
   "outer_diamond_W.pm" => {
                             file    => generic_abs_path("t/data/static/outer_diamond_W.pm"),
@@ -95,18 +96,21 @@ my $expected_rv2 =
 {
   "InputA.pl" => {
                    file => generic_abs_path("t/data/static/InputA.pl"),
-                   key => "InputA.pl",
+                   key  => "InputA.pl",
                    type => "data",
+                   uses => ["TestA.pm", "TestB.pm"],
                  },
   "InputB.pl" => {
                    file => generic_abs_path("t/data/static/InputB.pl"),
-                   key => "InputB.pl",
+                   key  => "InputB.pl",
                    type => "data",
+                   uses => ["TestC.pm"],
                  },
   "InputC.pl" => {
                    file => generic_abs_path("t/data/static/InputC.pl"),
-                   key => "InputC.pl", 
+                   key  => "InputC.pl",
                    type => "data",
+                   uses => ["TestD.pm"],
                  },
   "TestA.pm"  => {
                    file    => generic_abs_path("t/data/static/TestA.pm"),
@@ -167,18 +171,21 @@ my $expected_rv_ABC_skip_TestA =
 {
   "InputA.pl" => {
                    file => generic_abs_path("t/data/static/InputA.pl"),
-                   key => "InputA.pl", 
+                   key  => "InputA.pl",
                    type => "data",
+                   uses => ["TestA.pm", "TestB.pm"],
                  },
   "InputB.pl" => {
                    file => generic_abs_path("t/data/static/InputB.pl"),
-                   key => "InputB.pl",
+                   key  => "InputB.pl",
                    type => "data",
+                   uses => ["TestC.pm"],
                  },
   "InputC.pl" => {
                    file => generic_abs_path("t/data/static/InputC.pl"),
-                   key => "InputC.pl", 
+                   key  => "InputC.pl",
                    type => "data",
+                   uses => ["TestD.pm"],
                  },
 
 # It's OK to have this despite TestA.pm being skipped since this entry only shows
@@ -201,6 +208,7 @@ my $expected_rv_ABC_skip_TestA =
                    key     => "TestC.pm",
                    type    => "module",
                    used_by => ["InputB.pl"],
+                   uses    => ["TestD.pm"],
                  },
   "TestD.pm"  => {
                    file    => generic_abs_path("t/data/static/TestD.pm"),
@@ -224,18 +232,22 @@ my $expected_rv_ABC_skip_TestC =
 {
   "InputA.pl" => {
                    file => generic_abs_path("t/data/static/InputA.pl"),
-                   key => "InputA.pl", 
+                   key  => "InputA.pl",
                    type => "data",
+                   uses => ["TestA.pm", "TestB.pm"],
+
                  },
   "InputB.pl" => {
                    file => generic_abs_path("t/data/static/InputB.pl"),
-                   key => "InputB.pl",
+                   key  => "InputB.pl",
                    type => "data",
+                   uses => ["TestC.pm"],
                  },
   "InputC.pl" => {
                    file => generic_abs_path("t/data/static/InputC.pl"),
-                   key => "InputC.pl", 
+                   key  => "InputC.pl",
                    type => "data",
+                   uses => ["TestD.pm"],
                  },
   "TestA.pm"  => {
                    file    => generic_abs_path("t/data/static/TestA.pm"),
@@ -282,18 +294,21 @@ my $expected_rv_ABC_skip_TestA_TestC =
 {
   "InputA.pl" => {
                    file => generic_abs_path("t/data/static/InputA.pl"),
-                   key => "InputA.pl", 
+                   key  => "InputA.pl",
                    type => "data",
+                   uses => ["TestA.pm", "TestB.pm"],
                  },
   "InputB.pl" => {
                    file => generic_abs_path("t/data/static/InputB.pl"),
-                   key => "InputB.pl",
+                   key  => "InputB.pl",
                    type => "data",
+                   uses => ["TestC.pm"],
                  },
   "InputC.pl" => {
                    file => generic_abs_path("t/data/static/InputC.pl"),
-                   key => "InputC.pl", 
+                   key  => "InputC.pl",
                    type => "data",
+                   uses => ["TestD.pm"],
                  },
 
 # It's OK to have this despite TestA.pm being skipped since this entry only shows
@@ -349,13 +364,15 @@ my $expected_rv_AB_skip_TestC =
 {
   "InputA.pl" => {
                    file => generic_abs_path("t/data/static/InputA.pl"),
-                   key => "InputA.pl",
+                   key  => "InputA.pl",
                    type => "data",
+                   uses => ["TestA.pm", "TestB.pm"],
                  },
   "InputB.pl" => {
                    file => generic_abs_path("t/data/static/InputB.pl"),
-                   key => "InputB.pl",
+                   key  => "InputB.pl",
                    type => "data",
+                   uses => ["TestC.pm"],
                  },
   "TestA.pm"  => {
                    file    => generic_abs_path("t/data/static/TestA.pm"),

@@ -77,11 +77,12 @@ hash reference; its keys are the module names as appears in C<%INC>
         key     => 'Test/More.pm',
         type    => 'module',    # or 'autoload', 'data', 'shared'
         used_by => [ 'Test/Simple.pm', ... ],
+        uses    => [ 'Test/Other.pm', ... ],
     }
 
-One function, C<scan_deps>, is exported by default.  Three other
-functions (C<scan_line>, C<scan_chunk>, C<add_deps>) are exported upon
-request.
+One function, C<scan_deps>, is exported by default.  Other
+functions such as (C<scan_line>, C<scan_chunk>, C<add_deps>, C<path_to_inc_name>)
+are exported upon request.
 
 Users of B<App::Packer> may also use this module as the dependency-checking
 frontend, by tweaking their F<p2e.pl> like below:
@@ -553,7 +554,7 @@ sub scan_deps_static {
             chomp(my $line = $_);
             foreach my $pm (scan_line($line)) {
                 last LINE if $pm eq '__END__';
-                
+
                 # Skip Tk hits from Term::ReadLine and Tcl::Tk
                 my $pathsep = qr/\/|\\|::/;
                 if ($pm =~ /^Tk\b/) {
@@ -822,11 +823,16 @@ sub _add_info {
         type => $type,
     };
 
-    push @{ $rv->{$module}{used_by} }, $used_by
-      if defined($used_by)
-      and $used_by ne $module
-      and ( (!File::Spec->case_tolerant() && !grep { $_ eq $used_by } @{ $rv->{$module}{used_by} })
-         or ( File::Spec->case_tolerant() && !grep { lc($_) eq lc($used_by) } @{ $rv->{$module}{used_by} }));
+    if (defined($used_by) and $used_by ne $module) {
+        push @{ $rv->{$module}{used_by} }, $used_by
+          if  ( (!File::Spec->case_tolerant() && !grep { $_ eq $used_by } @{ $rv->{$module}{used_by} })
+             or ( File::Spec->case_tolerant() && !grep { lc($_) eq lc($used_by) } @{ $rv->{$module}{used_by} }));
+
+        # We assume here that another _add_info will be called to provide the other parts of $rv->{$used_by}    
+        push @{ $rv->{$used_by}{uses} }, $module
+          if  ( (!File::Spec->case_tolerant() && !grep { $_ eq $module } @{ $rv->{$used_by}{uses} })
+             or ( File::Spec->case_tolerant() && !grep { lc($_) eq lc($module) } @{ $rv->{$used_by}{uses} }));
+    }
 }
 
 # This subroutine relies on not being called for modules that should be skipped
