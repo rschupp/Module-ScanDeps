@@ -2,7 +2,7 @@ package Module::ScanDeps;
 
 use 5.004;
 use strict;
-use vars qw( $VERSION @EXPORT @EXPORT_OK $CurrentPackage @IncludeLibs );
+use vars qw( $VERSION @EXPORT @EXPORT_OK $CurrentPackage @IncludeLibs $ScanFileRE );
 
 $VERSION   = '0.76';
 @EXPORT    = qw( scan_deps scan_deps_runtime );
@@ -26,6 +26,8 @@ use File::Spec ();
 use File::Basename ();
 use FileHandle;
 use Module::Build::ModuleInfo;
+
+$ScanFileRE = qr/\.(?i:p[ml]|t|al)/;
 
 =head1 NAME
 
@@ -180,9 +182,20 @@ will be Module/ScanDeps.pm.
 
 =head1 NOTES
 
-You can set the global variable C<@Module::ScanDeps::IncludeLibs> to
-specify additional directories in which to search modules
-without modifying C<@INC> itself.
+=head2 B<@Module::ScanDeps::IncludeLibs>
+
+You can set this global variable to specify additional directories in
+which to search modules without modifying C<@INC> itself.
+
+=head2 B<$Module::ScanDeps::ScanFileRE>
+
+You can set this global variable to specify a regular expression to 
+identify what files to scan. By default it includes all files of 
+the following types: .pm, .pl, .t and .al.
+
+For instance, if you want to scan all files then use the following:
+
+C<$Module::ScanDeps::ScanFileRE = qr/.*/>
 
 =head1 CAVEATS
 
@@ -485,12 +498,17 @@ sub scan_deps {
         (@_ and $_[0] =~ /^(?:$Keys)$/o) ? @_ : (files => [@_], recurse => 1)
     );
 
-    if (!defined($args{keys})) { 
+    if (!defined($args{keys})) {
         $args{keys} = [map {path_to_inc_name($_, $args{warn_missing})} @{$args{files}}];
     }
 
     my ($type, $path);
     foreach my $input_file (@{$args{files}}) {
+        if ($input_file !~ $ScanFileRE) {
+            warn "Skipping input file $input_file because it matches \$Module::ScanDeps::ScanFileRE\n" if $args{warn_missing};
+            next;
+        }
+
         $type = 'module';
         $type = 'data' unless $input_file =~ /\.p[mh]$/io;
         $path = $input_file;
@@ -543,6 +561,7 @@ sub scan_deps_static {
         next if $skip->{$file}++;
         next if is_insensitive_fs()
           and $file ne lc($file) and $skip->{lc($file)}++;
+        next unless $file =~ $ScanFileRE;
 
         local *FH;
         open FH, $file or die "Cannot open $file: $!";
@@ -628,6 +647,8 @@ sub scan_deps_runtime {
         my $file;
 
         foreach $file (@$files) {
+            next unless $file =~ $ScanFileRE;
+
             ($inchash, $dl_shared_objects, $incarray) = ({}, [], []);
             _compile($perl, $file, $inchash, $dl_shared_objects, $incarray);
 

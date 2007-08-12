@@ -21,7 +21,7 @@ my $cwd_file = $INC{"Cwd.pm"};
 my $code = "use Cwd;\n";
 my $dl_ext = $Config{dlext};
 
-my ($fh, $filename) = File::Temp::tempfile( UNLINK => 1 );
+my ($fh, $filename) = File::Temp::tempfile( UNLINK => 1, SUFFIX => '.pl' );
 print $fh $code, "\n" or die $!;
 close $fh;
 
