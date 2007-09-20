@@ -1,4 +1,4 @@
-[Changes for 0.77 - 2007-08-03]
+[Changes for 0.77 - 2007-09-20]
 * Add support for prefork.pm (similar to how base.pm is detected).
 * Added uses field to hash descriptions returned by scan_deps + tests (Adrian Issott)
 * Added ScanFileRE to restrict the files scanned to .pl, .pm, .al and .t but allow the user to override + tests (Adrian Issott)

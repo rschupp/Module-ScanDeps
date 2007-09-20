@@ -4,7 +4,7 @@ use 5.004;
 use strict;
 use vars qw( $VERSION @EXPORT @EXPORT_OK $CurrentPackage @IncludeLibs $ScanFileRE );
 
-$VERSION   = '0.76';
+$VERSION   = '0.77';
 @EXPORT    = qw( scan_deps scan_deps_runtime );
 @EXPORT_OK = qw( scan_line scan_chunk add_deps scan_deps_runtime path_to_inc_name );
 
@@ -35,8 +35,8 @@ Module::ScanDeps - Recursively scan Perl code for dependencies
 
 =head1 VERSION
 
-This document describes version 0.76 of Module::ScanDeps, released
-July 21, 2007.
+This document describes version 0.77 of Module::ScanDeps, released
+September 20, 2007.
 
 =head1 SYNOPSIS
 
@@ -1256,7 +1256,7 @@ documentations on CPAN for further information.
 
 =head1 AUTHORS
 
-Audrey Tang E<lt>autrijus@autrijus.orgE<gt>
+Audrey Tang E<lt>cpan@audreyt.orgE<gt>
 
 To a lesser degree: Steffen Mueller E<lt>smueller@cpan.orgE<gt>
 
@@ -1284,9 +1284,9 @@ Please submit bug reports to E<lt>bug-Module-ScanDeps@rt.cpan.orgE<gt>.
 
 =head1 COPYRIGHT
 
-Copyright 2002, 2003, 2004, 2005, 2006 by
-Audrey Tang E<lt>autrijus@autrijus.orgE<gt>;
-2005, 2006 by Steffen Mueller E<lt>smueller@cpan.orgE<gt>.
+Copyright 2002-2007 by
+Audrey Tang E<lt>cpan@audreyt.orgE<gt>;
+2005-2007 by Steffen Mueller E<lt>smueller@cpan.orgE<gt>.
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
