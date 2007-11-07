@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 481;
+use Test::More tests => 553;
 
 use lib qw(t t/data/static);
 use Utils;
@@ -407,5 +407,54 @@ my $rv6 = scan_deps(
           );
 
 compare_scandeps_rvs($rv6, $expected_rv_AB_skip_TestC, \@roots_AB);
+
+##############################################################
+
+my $expected_rv_AB_skip_TestD =
+{
+  "InputA.pl" => {
+                   file => generic_abs_path("t/data/static/InputA.pl"),
+                   key  => "InputA.pl",
+                   type => "data",
+                   uses => ["TestA.pm", "TestB.pm"],
+                 },
+  "InputB.pl" => {
+                   file => generic_abs_path("t/data/static/InputB.pl"),
+                   key  => "InputB.pl",
+                   type => "data",
+                   uses => ["TestC.pm"],
+                 },
+  "TestA.pm"  => {
+                   file    => generic_abs_path("t/data/static/TestA.pm"),
+                   key     => "TestA.pm",
+                   type    => "module",
+                   used_by => ["InputA.pl"],
+                 },
+  "TestB.pm"  => {
+                   file    => generic_abs_path("t/data/static/TestB.pm"),
+                   key     => "TestB.pm",
+                   type    => "module",
+                   used_by => ["InputA.pl"],
+                 },
+  "TestC.pm"  => {
+                   file    => generic_abs_path("t/data/static/TestC.pm"),
+                   key     => "TestC.pm",
+                   type    => "module",
+                   used_by => ["InputB.pl"],
+                   uses    => ["TestD.pm"],
+                 },
+#
+# No TestD entry
+#
+};
+
+my $rv7 = scan_deps(
+            files   => \@roots_AB,
+            skip    => { generic_abs_path("t/data/static/TestD.pm") => 1 },
+            recurse => 1,
+          );
+
+#is_deeply($rv7, $expected_rv_AB_skip_TestD);
+compare_scandeps_rvs($rv7, $expected_rv_AB_skip_TestD, \@roots_AB);
 
 __END__
