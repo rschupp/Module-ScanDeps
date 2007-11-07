@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 553;
+use Test::More tests => 546;
 
 use lib qw(t t/data/static);
 use Utils;
@@ -441,7 +441,6 @@ my $expected_rv_AB_skip_TestD =
                    key     => "TestC.pm",
                    type    => "module",
                    used_by => ["InputB.pl"],
-                   uses    => ["TestD.pm"],
                  },
 #
 # No TestD entry
@@ -450,7 +449,7 @@ my $expected_rv_AB_skip_TestD =
 
 my $rv7 = scan_deps(
             files   => \@roots_AB,
-            skip    => { generic_abs_path("t/data/static/TestD.pm") => 1 },
+            skip    => { "t/data/static/TestD.pm" => 1 },
             recurse => 1,
           );
 

@@ -550,17 +550,17 @@ sub scan_deps {
 
 sub scan_deps_static {
     my ($args) = @_;
-    my ($files, $keys, $recurse, $rv, $skip, $first, $execute, $compile) =
-        @$args{qw( files keys recurse rv skip first execute compile )};
+    my ($files, $keys, $recurse, $rv, $skip, $first, $execute, $compile, $_skip) =
+        @$args{qw( files keys recurse rv skip first execute compile _skip )};
 
     $rv   ||= {};
-    $skip ||= {};
+    $_skip ||= { %{$skip || {}} };
 
     foreach my $file (@{$files}) {
         my $key = shift @{$keys};
-        next if $skip->{$file}++;
+        next if $_skip->{$file}++;
         next if is_insensitive_fs()
-          and $file ne lc($file) and $skip->{lc($file)}++;
+          and $file ne lc($file) and $_skip->{lc($file)}++;
         next unless $file =~ $ScanFileRE;
 
         local *FH;
@@ -622,6 +622,7 @@ sub scan_deps_static {
             rv      => $rv,
             skip    => $skip,
             recurse => 0,
+            _skip   => $_skip,
         }) or ($args->{_deep} and return);
         last if $count == keys %$rv;
     }
@@ -856,7 +857,7 @@ sub _add_info {
     }
 }
 
-# This subroutine relies on not being called for modules that should be skipped
+# This subroutine relies on not being called for modules that have already been visited
 sub add_deps {
     my %args =
       ((@_ and $_[0] =~ /^(?:modules|rv|used_by|warn_missing)$/)
@@ -864,11 +865,13 @@ sub add_deps {
         : (rv => (ref($_[0]) ? shift(@_) : undef), modules => [@_]));
 
     my $rv = $args{rv}   || {};
+    my $skip = $args{skip} || {};
     my $used_by = $args{used_by};
 
     foreach my $module (@{ $args{modules} }) {
         my $file = _find_in_inc($module)
           or _warn_of_missing_module($module, $args{warn_missing}), next;
+        next if $skip->{$file};
 
         if (exists $rv->{$module}) {
             _add_info( rv     => $rv,      module  => $module,
@@ -908,12 +911,13 @@ sub add_deps {
 sub _find_in_inc {
     my $file = shift;
 
-    # absolute file names
-    return $file if -f $file;
-
     foreach my $dir (grep !/\bBSDPAN\b/, @INC, @IncludeLibs) {
         return "$dir/$file" if -f "$dir/$file";
     }
+
+    # absolute file names
+    return $file if -f $file;
+
     return;
 }
 
