@@ -4,21 +4,31 @@ use strict;
 use warnings;
 use File::Temp;
 
-use Test::More tests => 5;
+use Test::More tests => 8;
 use lib 't/data/ScanFileRE';
 
 BEGIN { use_ok( 'Module::ScanDeps' ); }
 
 # Test that ScanFileRE is applied to the input files
+warn $Module::ScanDeps::ScanFileRE;
 my ($fh, $filename) = File::Temp::tempfile( UNLINK => 1, SUFFIX => '.na' );
-ok($filename !~ $Module::ScanDeps::ScanFileRE, "ScanFileRE is accessible outside Module::ScanDeps");
-die "$filename must not match ScanFileRE for the following test to make sense" if $filename =~ $Module::ScanDeps::ScanFileRE;
+ok(defined $Module::ScanDeps::ScanFileRE, "ScanFileRE is accessible outside Module::ScanDeps");
+ok($filename !~ $Module::ScanDeps::ScanFileRE, "$filename does not match");
 my $rv = scan_deps(files => [$filename]);
 ok(
     !(scalar grep { /\Q$filename\E/ } keys %$rv),
-    "ScanFileRE removed matching input files"
+    "ScanFileRE removed non-matching input files"
 );
 
+my ($fh2, $filename2) = File::Temp::tempfile( UNLINK => 1 );
+ok($filename2 =~ $Module::ScanDeps::ScanFileRE, "$filename2 does match");
+my $rv2 = scan_deps(files => [$filename2]);
+my $basename = $filename2;
+$basename =~ s/^.*(?:\/|\\)([^\\\/]+)$/$1/;
+ok(
+    (scalar grep { /\Q$basename\E/ } keys %$rv2) == 1,
+    "ScanFileRE did not remove matching input files"
+);
 # The next two tests rely on t/data/ScanFileRE/auto/example/example.h using t/data/ScanFileRE/example_too.pm
 
 # Test that the default ScanFileRE is applied to the used files

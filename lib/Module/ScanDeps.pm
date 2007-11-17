@@ -27,7 +27,7 @@ use File::Basename ();
 use FileHandle;
 use Module::Build::ModuleInfo;
 
-$ScanFileRE = qr/(?:\.(?i:p[ml]|t|al))?$/;
+$ScanFileRE = qr/(?:^|\\|\/)(?:[^.]*|.*\.(?i:p[ml]|t|al))$/;
 
 =head1 NAME
 
