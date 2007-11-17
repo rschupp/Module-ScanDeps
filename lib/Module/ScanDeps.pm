@@ -4,7 +4,7 @@ use 5.004;
 use strict;
 use vars qw( $VERSION @EXPORT @EXPORT_OK $CurrentPackage @IncludeLibs $ScanFileRE );
 
-$VERSION   = '0.77';
+$VERSION   = '0.78';
 @EXPORT    = qw( scan_deps scan_deps_runtime );
 @EXPORT_OK = qw( scan_line scan_chunk add_deps scan_deps_runtime path_to_inc_name );
 
@@ -27,7 +27,7 @@ use File::Basename ();
 use FileHandle;
 use Module::Build::ModuleInfo;
 
-$ScanFileRE = qr/\.(?i:p[ml]|t|al)/;
+$ScanFileRE = qr/(?:\.(?i:p[ml]|t|al))?$/;
 
 =head1 NAME
 
@@ -35,8 +35,8 @@ Module::ScanDeps - Recursively scan Perl code for dependencies
 
 =head1 VERSION
 
-This document describes version 0.77 of Module::ScanDeps, released
-September 20, 2007.
+This document describes version 0.78 of Module::ScanDeps, released
+November 17, 2007.
 
 =head1 SYNOPSIS
 
@@ -191,11 +191,12 @@ which to search modules without modifying C<@INC> itself.
 
 You can set this global variable to specify a regular expression to 
 identify what files to scan. By default it includes all files of 
-the following types: .pm, .pl, .t and .al.
+the following types: .pm, .pl, .t and .al. Additionally, all files
+without a suffix are considered.
 
 For instance, if you want to scan all files then use the following:
 
-C<$Module::ScanDeps::ScanFileRE = qr/.*/>
+C<$Module::ScanDeps::ScanFileRE = qr/./>
 
 =head1 CAVEATS
 

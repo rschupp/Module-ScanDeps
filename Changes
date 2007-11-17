@@ -1,15 +1,24 @@
+[Changes for 0.78 - 2007-11-17]
+* Fix ScanFileRE heuristics to allow for scanning files without
+  suffixes.
+
 [Changes for 0.77 - 2007-09-20]
 * Add support for prefork.pm (similar to how base.pm is detected).
-* Added uses field to hash descriptions returned by scan_deps + tests (Adrian Issott)
-* Added ScanFileRE to restrict the files scanned to .pl, .pm, .al and .t but allow the user to override + tests (Adrian Issott)
+* Added uses field to hash descriptions returned by scan_deps +
+  tests (Adrian Issott)
+* Added ScanFileRE to restrict the files scanned to .pl, .pm, .al and
+  .t but allow the user to override + tests (Adrian Issott)
 
 [Changes for 0.76 - 2007-07-21]
 * Fix special case for Term::ReadLine (should not rope in Tk)
 * New special case for Tcl::Tk (should not rope in Tk either!)
 * New special case for threads::shared ==> rope in attributes.pm
-* Fix to avoid duplicated entries that can arise due to case differences that don't actually matter on case-tolerant systems (Adrian Issott)
+* Fix to avoid duplicated entries that can arise due to case
+  differences that don't actually matter on case-tolerant
+  systems (Adrian Issott)
 * M::SD warnings now go to STDERR not STDOUT (Adrian Issott)
-* Fixed bug #24162: scandeps.(bat|pl) doesn't correctly identify Core Modules on Windows (Adrian Issott)
+* Fixed bug #24162: scandeps.(bat|pl) doesn't correctly identify Core
+  Modules on Windows (Adrian Issott)
 * Now finds shared libraries for modules specified as input files.
 * Tests for finding shared libraries.
 
@@ -26,11 +35,12 @@
 [Changes for 0.73_01 - 2007-03-28]
 * Fixed bug "scan_deps doesn't show ALL the dependencies"
 * Ensured all file entries are given by absolute paths
-* Added a number of test artificial dependency trees as test data mainly for
-  "scan_deps doesn't show ALL the dependencies" bug
+* Added a number of test artificial dependency trees as test data
+  mainly for "scan_deps doesn't show ALL the dependencies" bug
 * Added tests for scandeps recurse option (all pass)
 * Added tests for scandeps skip option (all pass)
-* Added tests to show a duplicated dependency is in fact only shown once (all pass)
+* Added tests to show a duplicated dependency is in fact only shown
+  once (all pass)
 * Added Utils.pm test module containing generic_scandeps_rv_test and
   compare_scandeps_rvs subroutines (Adrian Issott)
 
