@@ -10,7 +10,6 @@ use lib 't/data/ScanFileRE';
 BEGIN { use_ok( 'Module::ScanDeps' ); }
 
 # Test that ScanFileRE is applied to the input files
-warn $Module::ScanDeps::ScanFileRE;
 my ($fh, $filename) = File::Temp::tempfile( UNLINK => 1, SUFFIX => '.na' );
 ok(defined $Module::ScanDeps::ScanFileRE, "ScanFileRE is accessible outside Module::ScanDeps");
 ok($filename !~ $Module::ScanDeps::ScanFileRE, "$filename does not match");

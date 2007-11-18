@@ -1,3 +1,6 @@
+[Changes for 0.79 - 2007-11-18]
+* Remove warning from ScanFileRE tests.
+
 [Changes for 0.78 - 2007-11-17]
 * Fix ScanFileRE heuristics to allow for scanning files without
   suffixes.
