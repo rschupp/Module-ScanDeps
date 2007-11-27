@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 11;
+use Test::More tests => 12;
 
 my $rv;
 my $root;
@@ -36,4 +36,7 @@ foreach my $mod (@deps) {
     ok(grep {$_->{store_as} eq $mod } @{$rv->{modules}});
 };
 
+use File::Basename qw/basename/;
+my $basename = basename($0);
+ok(not(grep {$_->{store_as} =~ /\Q$basename\E/} @{$rv->{modules}})); 
 __END__

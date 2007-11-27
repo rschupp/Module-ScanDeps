@@ -546,6 +546,9 @@ sub scan_deps {
         );
     }
 
+    # do not include the input files themselves as dependencies!
+    delete $args{rv}{$_} foreach @{$args{files}};
+
     return ($args{rv});
 }
 

@@ -1,3 +1,5 @@
+* Do not report input files themselves as dependencies. (Regression from 0.74 onwards)
+
 [Changes for 0.79 - 2007-11-18]
 * Remove warning from ScanFileRE tests.
 
