@@ -841,6 +841,18 @@ sub _add_info {
                 last;
             }
         }
+        if (defined($used_by)) {
+            if (lc($used_by) eq lc($module)) {
+                $used_by = $module;
+            } else {
+                foreach my $key (keys %$rv) {
+                    if (lc($key) eq lc($used_by)) {
+                        $used_by = $key;
+                        last;
+                    }
+                }
+            }
+        }
     }
 
     $rv->{$module} ||= {
