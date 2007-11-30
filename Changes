@@ -1,9 +1,8 @@
-[Changes for 0.80 - 2007-11-28]
+[Changes for 0.80 - 2007-11-30]
 * Fix to avoid duplicated entries arising from used_by references with
   case differences.
-* Do not report input files themselves as dependencies. (Regression from 0.74 onwards)
-
-[Changes for 0.79 - 2007-11-18]
+* Do not report input files themselves as dependencies.
+  (Regression from 0.74 onwards)
 * Remove warning from ScanFileRE tests.
 
 [Changes for 0.78 - 2007-11-17]
