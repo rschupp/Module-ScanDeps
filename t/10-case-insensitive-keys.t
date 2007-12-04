@@ -5,10 +5,12 @@ use warnings;
 use File::Spec;
 
 use Test::More;
-if(!File::Spec->case_tolerant()) {
-    plan skip_all => 'Test irrelevant on case intolerant systems';
-} else {
-    plan tests => 42;
+BEGIN {
+    if(!File::Spec->case_tolerant()) {
+        plan skip_all => 'Test irrelevant on case intolerant systems';
+    } else {
+        plan tests => 43;
+    }
 }
 
 use lib qw(t t/data/case-insensitive-keys);

@@ -1,3 +1,6 @@
+[Changes for 0.81 - 2007-12-04]
+* Fix for the case-insensitive-file-system-test.
+
 [Changes for 0.80 - 2007-11-30]
 * Fix to avoid duplicated entries arising from used_by references with
   case differences.
