@@ -36,7 +36,7 @@ Module::ScanDeps - Recursively scan Perl code for dependencies
 =head1 VERSION
 
 This document describes version 0.81 of Module::ScanDeps, released
-December 4, 2007.
+December 7, 2007.
 
 =head1 SYNOPSIS
 

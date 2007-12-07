@@ -10,4 +10,5 @@ requires        'File::Spec'                => '0';
 requires        'Module::Build::ModuleInfo' => '0';
 
 install_script  'script/scandeps.pl';
-sign; WriteAll;
+#sign;
+WriteAll;
