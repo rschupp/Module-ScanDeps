@@ -1,3 +1,5 @@
+* Add Test::More to build requirements (Alexandr Ciornii)
+
 [Changes for 0.81 - 2007-12-07]
 * Fix for the case-insensitive-file-system-test.
 
