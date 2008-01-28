@@ -1,3 +1,4 @@
+[Changes for 0.82 - 2008-01-08]
 * Add Test::More to build requirements (Alexandr Ciornii)
 * Add dependency on version.pm
 * Now correctly identifies feature.pm as a dependency if
