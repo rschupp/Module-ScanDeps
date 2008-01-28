@@ -19,6 +19,7 @@ use constant is_insensitive_fs => (
         and (-s lc($0) || -1) == -s $0
 );
 
+use version;
 use Cwd ();
 use File::Path ();
 use File::Temp ();
@@ -699,7 +700,14 @@ sub scan_line {
             $CurrentPackage =~ s{::}{/}g;
             return;
         }
-        return if /^\s*(use|require)\s+[\d\._]+/;
+        # use VERSION:
+        if (/^\s*(?:use|require)\s+([\d\._]+)/) {
+          # include feaure.pm if we have 5.9.5 or better
+          if (version->new($1) >= version->new("5.9.5")) { # seems to catch 5.9, too (but not 5.9.4)
+            return "feature.pm";
+          }
+        }
+
         if (my ($autouse) = /^\s*use\s+autouse\s+(["'].*?["']|\w+)/)	
         {
             $autouse =~ s/["']//g;

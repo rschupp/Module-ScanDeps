@@ -1,4 +1,7 @@
 * Add Test::More to build requirements (Alexandr Ciornii)
+* Add dependency on version.pm
+* Now correctly identifies feature.pm as a dependency if
+  "use 5.10.0;" (and up) is found.
 
 [Changes for 0.81 - 2007-12-07]
 * Fix for the case-insensitive-file-system-test.

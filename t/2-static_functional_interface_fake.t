@@ -3,10 +3,10 @@
 use strict;
 use warnings;
 
-use Test::More tests => 302;
+use Test::More tests => 304;
 use lib qw(t t/data/static);
 use Utils;
-
+use version;
 
 
 ##############################################################
@@ -253,4 +253,24 @@ my $expected_rv5 =
 # Functional i/f
 my $rv5 = scan_deps(@roots5);
 compare_scandeps_rvs($rv5, $expected_rv5, \@roots5);
+
+
+##############################################################
+# Static dependency check of a module that does a
+# use 5.010;
+# Note that this doesn't test as much as the other tests
+# since feature.pm ropes in all kinds of things.
+##############################################################
+SKIP: {
+  skip "Skipping 'use VERSION' tests on pre-5.10.0", 2 if version->new($]) < version->new("5.10.0");
+  my @roots1 = qw(t/data/static/useVERSION.pm);
+
+  # Functional i/f
+  my $rv1 = scan_deps(@roots1);
+  ok(exists $rv1->{"useVERSION.pm"}, "use VERSION: source file included");
+  ok(exists $rv1->{"feature.pm"}, "use VERSION: feature.pm included");
+}
+
+
+
 __END__
