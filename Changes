@@ -1,3 +1,6 @@
+[Changes for 0.83 - 2008-03-23]
+* Add special case for Image::ExifTool.
+
 [Changes for 0.82 - 2008-01-08]
 * Add Test::More to build requirements (Alexandr Ciornii)
 * Add dependency on version.pm

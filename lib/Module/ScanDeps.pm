@@ -4,7 +4,7 @@ use 5.006;
 use strict;
 use vars qw( $VERSION @EXPORT @EXPORT_OK $CurrentPackage @IncludeLibs $ScanFileRE );
 
-$VERSION   = '0.82';
+$VERSION   = '0.83';
 @EXPORT    = qw( scan_deps scan_deps_runtime );
 @EXPORT_OK = qw( scan_line scan_chunk add_deps scan_deps_runtime path_to_inc_name );
 
@@ -285,6 +285,11 @@ my %Preload;
     'HTTP/Message.pm' => [ qw(
         URI/URL.pm          URI.pm
     ) ],
+    'Image/ExifTool.pm' => sub {
+        return( _glob_in_inc("Image/ExifTool", 1), qw(
+            File/RandomAccess.pm
+        ));
+    },
     'Image/Info.pm' => sub {
         return( _glob_in_inc("Image/Info", 1), qw(
             Image/TIFF.pm
