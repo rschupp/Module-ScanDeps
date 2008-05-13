@@ -4,7 +4,7 @@ use 5.006;
 use strict;
 use vars qw( $VERSION @EXPORT @EXPORT_OK $CurrentPackage @IncludeLibs $ScanFileRE );
 
-$VERSION   = '0.83';
+$VERSION   = '0.84';
 @EXPORT    = qw( scan_deps scan_deps_runtime );
 @EXPORT_OK = qw( scan_line scan_chunk add_deps scan_deps_runtime path_to_inc_name );
 
@@ -33,11 +33,6 @@ $ScanFileRE = qr/(?:^|\\|\/)(?:[^.]*|.*\.(?i:p[ml]|t|al))$/;
 =head1 NAME
 
 Module::ScanDeps - Recursively scan Perl code for dependencies
-
-=head1 VERSION
-
-This document describes version 0.82 of Module::ScanDeps, released
-January 28, 2008.
 
 =head1 SYNOPSIS
 
@@ -256,6 +251,7 @@ my %Preload;
     },
     'Catalyst/Engine.pm' => 'sub',
     'Class/MakeMethods.pm' => 'sub',
+    'Class/MethodMaker.pm' => 'sub',
     'Config/Any.pm' =>'sub',
     'Crypt/Random.pm' => sub {
         _glob_in_inc('Crypt/Random/Provider', 1);
