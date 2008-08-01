@@ -1,3 +1,6 @@
+[Changes for 0.85 - 2008-08-01]
+* Add special case for Net::Server.
+
 [Changes for 0.84 - 2008-05-13]
 * Add special case for Class::MethodMaker.
 

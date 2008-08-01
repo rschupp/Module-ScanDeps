@@ -330,6 +330,7 @@ my %Preload;
     'MIME/Decoder.pm'               => 'sub',
     'Net/DNS/RR.pm'                 => 'sub',
     'Net/FTP.pm'                    => 'sub',
+    'Net/Server.pm'                 => 'sub',
     'Net/SSH/Perl.pm'               => 'sub',
     'PDF/API2/Resource/Font.pm'     => 'sub',
     'PDF/API2/Basic/TTF/Font.pm'    => sub {
