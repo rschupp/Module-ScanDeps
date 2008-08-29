@@ -371,7 +371,7 @@ my %Preload;
     },
     'Template.pm'      => 'sub',
     'Term/ReadLine.pm' => 'sub',
-	'Test/Deep.pm'     => 'sub',
+    'Test/Deep.pm'     => 'sub',
     'Tk.pm'            => sub {
         $SeenTk = 1;
         qw( Tk/FileSelect.pm Encode/Unicode.pm );
@@ -436,8 +436,8 @@ my %Preload;
         return 'pod/perldiag.pod';
     },
     'threads/shared.pm' => [qw( attributes.pm )],
-    	# anybody using threads::shared is likely to declare variables
-	# with attribute :shared
+    # anybody using threads::shared is likely to declare variables
+    # with attribute :shared
     'utf8.pm' => [
         'utf8_heavy.pl', do {
             my $dir = 'unicore';
@@ -929,8 +929,7 @@ sub add_deps {
                            type   => $type );
             }
         }
-    }
-
+    } # end for modules
     return $rv;
 }
 
