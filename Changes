@@ -1,5 +1,6 @@
 * Use (arch|priv)libexp instead of (arch|priv)lib
   in scandeps.pl (Mark Stosberg)
+* Update to Module::Install 0.77
 
 [Changes for 0.85 - 2008-08-01]
 * Add special case for Net::Server.
