@@ -63,8 +63,8 @@ foreach my $key (sort keys %$map) {
 
     next if $skip{$name};
 
-    my $privPath = "$Config::Config{privlib}/$key";
-    my $archPath = "$Config::Config{archlib}/$key";
+    my $privPath = "$Config::Config{privlibexp}/$key";
+    my $archPath = "$Config::Config{archlibexp}/$key";
     $privPath =~ s|\\|\/|og;
     $archPath =~ s|\\|\/|og;
     if ($mod->{file} eq $privPath
