@@ -4,7 +4,7 @@ use 5.006;
 use strict;
 use vars qw( $VERSION @EXPORT @EXPORT_OK $CurrentPackage @IncludeLibs $ScanFileRE );
 
-$VERSION   = '0.84';
+$VERSION   = '0.86';
 @EXPORT    = qw( scan_deps scan_deps_runtime );
 @EXPORT_OK = qw( scan_line scan_chunk add_deps scan_deps_runtime path_to_inc_name );
 
@@ -745,28 +745,28 @@ sub scan_chunk {
         return [ 'base.pm',
             map { s{::}{/}g; "$_.pm" }
               grep { length and !/^q[qw]?$/ } split(/[^\w:]+/, $1) ]
-          if /^\s* use \s+ base \s+ (.*)/sx;
+          if /^\s* use \s+ base \b \s* (.*)/sx;
 
         return [ 'prefork.pm',
             map { s{::}{/}g; "$_.pm" }
               grep { length and !/^q[qw]?$/ } split(/[^\w:]+/, $1) ]
-          if /^\s* use \s+ prefork \s+ (.*)/sx;
+          if /^\s* use \s+ prefork \b \s* (.*)/sx;
 
         return [ 'Class/Autouse.pm',
             map { s{::}{/}g; "$_.pm" }
               grep { length and !/^:|^q[qw]?$/ } split(/[^\w:]+/, $1) ]
-          if /^\s* use \s+ Class::Autouse \s+ (.*)/sx
+          if /^\s* use \s+ Class::Autouse \b \s* (.*)/sx
               or /^\s* Class::Autouse \s* -> \s* autouse \s* (.*)/sx;
 
         return [ 'POE.pm',
             map { s{::}{/}g; "POE/$_.pm" }
               grep { length and !/^q[qw]?$/ } split(/[^\w:]+/, $1) ]
-          if /^\s* use \s+ POE \s+ (.*)/sx;
+          if /^\s* use \s+ POE \b \s* (.*)/sx;
 
         return [ 'encoding.pm',
             map { _find_encoding($_) }
               grep { length and !/^q[qw]?$/ } split(/[^\w:-]+/, $1) ]
-          if /^\s* use \s+ encoding \s+ (.*)/sx;
+          if /^\s* use \s+ encoding \b \s* (.*)/sx;
 
         return $1 if /(?:^|\s)(?:use|no|require)\s+([\w:\.\-\\\/\"\']+)/;
         return $1
