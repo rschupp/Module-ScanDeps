@@ -761,6 +761,7 @@ sub scan_chunk {
     my $module = eval {
         $_ = $chunk;
 
+        # TODO: There's many more of these "loader" type modules on CPAN!
         # scan for the typical module-loader modules
         foreach my $loader (qw(base prefork POE encoding maybe)) {
           my $retval = _typical_module_loader_chunk($_, $loader);

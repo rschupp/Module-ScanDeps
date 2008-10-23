@@ -1,3 +1,10 @@
+[Changes for 0.86 - 2008-10-23]
+* Fix the 'use prefork "Foo"' static detection.
+* Fix the detection of any of the module-loader modules such as
+  prefork, autouse, etc. if invoked as 'use prefork"Foo"' (note
+  the lack of a space).
+* Slightly refactor the loader-module scanning. (see above)
+* Support for "use maybe 'foo';"
 * Use (arch|priv)libexp instead of (arch|priv)lib
   in scandeps.pl (Mark Stosberg)
 * Update to Module::Install 0.77
