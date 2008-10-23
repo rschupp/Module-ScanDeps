@@ -341,10 +341,10 @@ my %Preload;
         POE/Kernel.pm POE/Session.pm
     ) ],
     'POE/Kernel.pm'                    => sub {
-	_glob_in_inc('POE/XS/Resource', 1),
-	_glob_in_inc('POE/Resource', 1),
-	_glob_in_inc('POE/XS/Loop', 1),
-	_glob_in_inc('POE/Loop', 1),
+        _glob_in_inc('POE/XS/Resource', 1),
+        _glob_in_inc('POE/Resource', 1),
+        _glob_in_inc('POE/XS/Loop', 1),
+        _glob_in_inc('POE/Loop', 1),
     },
     'Parse/AFP.pm'                  => 'sub',
     'Parse/Binary.pm'               => 'sub',
@@ -710,7 +710,7 @@ sub scan_line {
           }
         }
 
-        if (my ($autouse) = /^\s*use\s+autouse\s+(["'].*?["']|\w+)/)	
+        if (my ($autouse) = /^\s*use\s+autouse\s+(["'].*?["']|\w+)/)
         {
             $autouse =~ s/["']//g;
             $autouse =~ s{::}{/}g;
