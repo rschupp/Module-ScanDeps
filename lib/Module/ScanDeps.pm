@@ -735,6 +735,25 @@ sub scan_line {
     return sort keys %found;
 }
 
+# short helper for scan_chunk
+sub _typical_module_loader_chunk {
+  local $_ = shift;
+  my $loader = shift;
+  my $loader_file = $loader;
+  $loader_file =~ s/::/\//;
+  $loader_file .= ".pm";
+  $loader = quotemeta($loader);
+
+  if (/^\s* use \s+ $loader \b \s* (.*)/sx) {
+    return [
+      $loader_file,
+      map { s{::}{/}g; "$_.pm" }
+      grep { length and !/^q[qw]?$/ } split(/[^\w:]+/, $1)
+    ];
+  }
+  return();
+}
+
 sub scan_chunk {
     my $chunk = shift;
 
@@ -742,31 +761,17 @@ sub scan_chunk {
     my $module = eval {
         $_ = $chunk;
 
-        return [ 'base.pm',
-            map { s{::}{/}g; "$_.pm" }
-              grep { length and !/^q[qw]?$/ } split(/[^\w:]+/, $1) ]
-          if /^\s* use \s+ base \b \s* (.*)/sx;
-
-        return [ 'prefork.pm',
-            map { s{::}{/}g; "$_.pm" }
-              grep { length and !/^q[qw]?$/ } split(/[^\w:]+/, $1) ]
-          if /^\s* use \s+ prefork \b \s* (.*)/sx;
+        # scan for the typical module-loader modules
+        foreach my $loader (qw(base prefork POE encoding maybe)) {
+          my $retval = _typical_module_loader_chunk($_, $loader);
+          return $retval if $retval;
+        }
 
         return [ 'Class/Autouse.pm',
             map { s{::}{/}g; "$_.pm" }
               grep { length and !/^:|^q[qw]?$/ } split(/[^\w:]+/, $1) ]
           if /^\s* use \s+ Class::Autouse \b \s* (.*)/sx
               or /^\s* Class::Autouse \s* -> \s* autouse \s* (.*)/sx;
-
-        return [ 'POE.pm',
-            map { s{::}{/}g; "POE/$_.pm" }
-              grep { length and !/^q[qw]?$/ } split(/[^\w:]+/, $1) ]
-          if /^\s* use \s+ POE \b \s* (.*)/sx;
-
-        return [ 'encoding.pm',
-            map { _find_encoding($_) }
-              grep { length and !/^q[qw]?$/ } split(/[^\w:-]+/, $1) ]
-          if /^\s* use \s+ encoding \b \s* (.*)/sx;
 
         return $1 if /(?:^|\s)(?:use|no|require)\s+([\w:\.\-\\\/\"\']+)/;
         return $1
