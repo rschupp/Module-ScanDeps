@@ -750,8 +750,8 @@ sub scan_chunk {
         return [ 'prefork.pm',
             map { s{::}{/}g; "$_.pm" }
               grep { length and !/^q[qw]?$/ } split(/[^\w:]+/, $1) ]
+          if /^\s* use \s+ prefork \s+ (.*)/sx;
 
-          if /^\s* use \s+ base \s+ (.*)/sx;
         return [ 'Class/Autouse.pm',
             map { s{::}{/}g; "$_.pm" }
               grep { length and !/^:|^q[qw]?$/ } split(/[^\w:]+/, $1) ]
