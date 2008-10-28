@@ -4,7 +4,7 @@ use 5.006;
 use strict;
 use vars qw( $VERSION @EXPORT @EXPORT_OK $CurrentPackage @IncludeLibs $ScanFileRE );
 
-$VERSION   = '0.87';
+$VERSION   = '0.88';
 @EXPORT    = qw( scan_deps scan_deps_runtime );
 @EXPORT_OK = qw( scan_line scan_chunk add_deps scan_deps_runtime path_to_inc_name );
 
@@ -274,6 +274,7 @@ my %Preload;
         grep /\bMM_/, _glob_in_inc('ExtUtils', 1);
     },
     'File/Basename.pm' => [qw( re.pm )],
+    'File/HomeDir.pm' => 'sub',
     'File/Spec.pm'     => sub {
         require File::Spec;
         map { my $name = $_; $name =~ s!::!/!g; "$name.pm" } @File::Spec::ISA;
