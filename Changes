@@ -1,3 +1,6 @@
+[Changes for 0.87 - 2008-10-28]
+* Add special case for PPI.
+
 [Changes for 0.86 - 2008-10-23]
 * Fix the 'use prefork "Foo"' static detection.
 * Fix the detection of any of the module-loader modules such as
