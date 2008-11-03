@@ -1,3 +1,6 @@
+
+[Changes for 0.89 - 2008-11-03]
+* Distribution fixes.
 * Do not use base Exporter.
 * Detection of 'asa' and 'only::matching'.
 
