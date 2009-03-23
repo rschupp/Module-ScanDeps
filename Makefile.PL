@@ -4,6 +4,7 @@ use inc::Module::Install;
 
 name            'Module-ScanDeps';
 all_from        'lib/Module/ScanDeps.pm';
+repository      'http://svn.openfoundry.org/par/Module-ScanDeps/trunk/';
 
 requires        'File::Temp'                => '0';
 requires        'File::Spec'                => '0';
