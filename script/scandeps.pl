@@ -10,12 +10,13 @@ use ExtUtils::MakeMaker;
 use subs qw( _name _modtree );
 
 my %opts;
-getopts('BVxce:', \%opts);
+getopts('BVRxce:', \%opts);
 
 my (%map, %skip);
 my $core    = $opts{B};
 my $verbose = $opts{V};
 my $eval    = $opts{e};
+my $recurse = $opts{R} ? 0 : 1;
 
 if ($eval) {
     require File::Temp;
@@ -25,7 +26,7 @@ if ($eval) {
     push @ARGV, $filename;
 }
 
-die "Usage: $0 [ -B ] [ -V ] [ -x | -c ] [ -e STRING | FILE ... ]\n" unless @ARGV;
+die "Usage: $0 [ -B ] [ -V ] [ -x | -c ] [ -R ] [ -e STRING | FILE ... ]\n" unless @ARGV;
 
 my @files = @ARGV;
 while (<>) {
@@ -35,7 +36,7 @@ while (<>) {
 
 my $map = scan_deps(
     files   => \@files,
-    recurse => 1,
+    recurse => $recurse,
     $opts{x} ? ( execute => 1 ) :
     $opts{c} ? ( compile => 1 ) : (),
     $opts{V} ? ( warn_missing => 1 ) : (),
@@ -139,10 +140,11 @@ scandeps.pl - Scan file prerequisites
 
 =head1 SYNOPSIS
 
-    % scandeps.pl *.pm		# Print PREREQ_PM section for *.pm
+    % scandeps.pl *.pm          # Print PREREQ_PM section for *.pm
     % scandeps.pl -e 'STRING'	# Scan an one-liner
-    % scandeps.pl -B *.pm	# Include core modules
-    % scandeps.pl -V *.pm	# Show autoload/shared/data files
+    % scandeps.pl -B *.pm       # Include core modules
+    % scandeps.pl -V *.pm       # Show autoload/shared/data files
+    % scandeps.pl -R *.pm       # Don't recurse
 
 =head1 DESCRIPTION
 
@@ -186,6 +188,10 @@ Executes the code and inspects its C<%INC>, in addition to static scanning.
 =item -B
 
 Include core modules in the output and the recursive search list.
+
+=item -R
+
+Only show dependencies found in the files listed and do not recurse.
 
 =item -V
 
