@@ -334,6 +334,8 @@ my %Preload;
     'Net/FTP.pm'                    => 'sub',
     'Net/Server.pm'                 => 'sub',
     'Net/SSH/Perl.pm'               => 'sub',
+    'PAR/Repository.pm'             => 'sub',
+    'PAR/Repository/Client.pm'      => 'sub',
     'PDF/API2/Resource/Font.pm'     => 'sub',
     'PDF/API2/Basic/TTF/Font.pm'    => sub {
         _glob_in_inc('PDF/API2/Basic/TTF', 1);
