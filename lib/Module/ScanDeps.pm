@@ -813,6 +813,14 @@ sub scan_chunk {
                 push @modules, "Tk/$1.pm";
                 push @modules, "Tk/Scrollbar.pm";
             }
+            if (/->\s*setPalette/g) {
+                push @modules,
+                  map { "Tk/$_pm" }
+                  qw( Button Canvas Checkbutton Entry
+                      Frame Label Labelframe Listbox
+                      Menubutton Menu Message Radiobutton
+                      Scale Scrollbar Spinbox Text );
+            }
             return \@modules;
         }
         return;
