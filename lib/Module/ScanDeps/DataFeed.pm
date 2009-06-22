@@ -131,7 +131,7 @@ Please submit bug reports to E<lt>bug-Module-ScanDeps@rt.cpan.orgE<gt>.
 
 =head1 COPYRIGHT
 
-Copyright 2004-2007 by Edward S. Peschko E<lt>esp5@pge.comE<gt>,
+Copyright 2004-2009 by Edward S. Peschko E<lt>esp5@pge.comE<gt>,
 Audrey Tang E<lt>cpan@audreyt.orgE<gt>,
 Steffen Mueller E<lt>smueller@cpan.orgE<gt>
 

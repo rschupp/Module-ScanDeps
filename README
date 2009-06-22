@@ -19,7 +19,7 @@ Module::ScanDeps uses the standard perl module install process:
 * Copyright
 
 Copyright 2002-2008 by Audrey Tang <autrijus@autrijus.org>;
-2005-2008 by Steffen Mueller <smueller@cpan.org>.
+2005-2009 by Steffen Mueller <smueller@cpan.org>.
 
 All rights reserved.  You can redistribute and/or modify
 this bundle under the same terms as Perl itself.

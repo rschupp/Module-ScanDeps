@@ -1334,7 +1334,7 @@ Please submit bug reports to E<lt>bug-Module-ScanDeps@rt.cpan.orgE<gt>.
 
 Copyright 2002-2008 by
 Audrey Tang E<lt>cpan@audreyt.orgE<gt>;
-2005-2008 by Steffen Mueller E<lt>smueller@cpan.orgE<gt>.
+2005-2009 by Steffen Mueller E<lt>smueller@cpan.orgE<gt>.
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
