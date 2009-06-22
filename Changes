@@ -1,3 +1,6 @@
+[Changes for 0.91 - 2009-06-22]
+* Add special case for Tk's setPalette call (Christoph Lamprecht)
+
 [Changes for 0.90 - 2009-05-09]
 * Add special case for DateTime::Locale
 * Add special case for PAR::Repository and PAR::Repository::Client
