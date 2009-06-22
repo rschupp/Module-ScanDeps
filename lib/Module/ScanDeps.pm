@@ -815,7 +815,7 @@ sub scan_chunk {
             }
             if (/->\s*setPalette/g) {
                 push @modules,
-                  map { "Tk/$_pm" }
+                  map { "Tk/$_.pm" }
                   qw( Button Canvas Checkbutton Entry
                       Frame Label Labelframe Listbox
                       Menubutton Menu Message Radiobutton
