@@ -1,5 +1,4 @@
 package Module::ScanDeps;
-
 use 5.006;
 use strict;
 use vars qw( $VERSION @EXPORT @EXPORT_OK @ISA $CurrentPackage @IncludeLibs $ScanFileRE );
@@ -518,8 +517,7 @@ sub scan_deps {
             next;
         }
 
-        $type = 'module';
-        $type = 'data' unless $input_file =~ /\.p[mh]$/io;
+        $type = _gettype($input_file);
         $path = $input_file;
         if ($type eq 'module') {
             # necessary because add_deps does the search for shared libraries and such
@@ -883,7 +881,6 @@ sub _add_info {
             }
         }
     }
-
     $rv->{$module} ||= {
         file => $file,
         key  => $module,
@@ -925,8 +922,7 @@ sub add_deps {
             next;
         }
 
-        my $type = 'module';
-        $type = 'data' unless $file =~ /\.p[mh]$/i;
+        my $type = _gettype($file);
         _add_info( rv     => $rv,   module  => $module,
                    file   => $file, used_by => $used_by,
                    type   => $type );
@@ -937,12 +933,12 @@ sub add_deps {
             foreach (_glob_in_inc("auto/$path")) {
                 next if $_->{file} =~ m{\bauto/$path/.*/};  # weed out subdirs
                 next if $_->{name} =~ m/(?:^|\/)\.(?:exists|packlist)$/;
-                my $ext = lc($1) if $_->{name} =~ /(\.[^.]+)$/;
+                my ($ext,$type);
+                $ext = lc($1) if $_->{name} =~ /(\.[^.]+)$/;
                 next if $ext eq lc(lib_ext());
-                my $type = 'shared' if $ext eq lc(dl_ext());
-                $type = 'autoload' if $ext eq '.ix' or $ext eq '.al';
+                $type = 'shared' if $ext eq lc(dl_ext());
+                $type = 'autoload' if ($ext eq '.ix' or $ext eq '.al');
                 $type ||= 'data';
-
                 _add_info( rv     => $rv,        module  => "auto/$path/$_->{name}",
                            file   => $_->{file}, used_by => $module,
                            type   => $type );
@@ -1202,7 +1198,7 @@ sub _gettype {
     my $name = shift;
     my $dlext = quotemeta(dl_ext());
 
-    return 'autoload' if $name =~ /(?:\.ix|\.al|\.bs)$/i;
+    return 'autoload' if $name =~ /(?:\.ix|\.al)$/i;
     return 'module'   if $name =~ /\.p[mh]$/i;
     return 'shared'   if $name =~ /\.$dlext$/i;
     return 'data';
