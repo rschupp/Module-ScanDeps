@@ -747,7 +747,7 @@ sub _typical_module_loader_chunk {
   $loader_file .= ".pm";
   $loader = quotemeta($loader);
 
-  if (/^\s* use \s+ $loader \b \s* (.*)/sx) {
+  if (/^\s* use \s+ $loader(?!\:) \b \s* (.*)/sx) {
     return [
       $loader_file,
       map { s{::}{/}g; "$_.pm" }
