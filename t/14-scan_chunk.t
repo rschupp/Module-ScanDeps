@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 2;
+use Test::More tests => 3;
 use Module::ScanDeps qw/scan_chunk/;
 
 {
@@ -22,3 +22,10 @@ my @array=sort (scan_chunk($chunk));
 is_deeply(\@array,[sort qw{base.pm strict.pm}]);
 }
 
+{
+my $chunk=<<'EOT';
+use parent qw(strict);
+EOT
+my @array=sort (scan_chunk($chunk));
+is_deeply(\@array,[sort qw{parent.pm strict.pm}]);
+}

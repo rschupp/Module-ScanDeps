@@ -766,7 +766,7 @@ sub scan_chunk {
 
         # TODO: There's many more of these "loader" type modules on CPAN!
         # scan for the typical module-loader modules
-        foreach my $loader (qw(asa base prefork POE encoding maybe only::matching)) {
+        foreach my $loader (qw(asa base parent prefork POE encoding maybe only::matching)) {
           my $retval = _typical_module_loader_chunk($_, $loader);
           return $retval if $retval;
         }
