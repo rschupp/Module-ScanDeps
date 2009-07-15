@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 4;
+use Test::More tests => 6;
 use Module::ScanDeps qw/scan_chunk/;
 
 {
@@ -37,3 +37,14 @@ EOT
 my @array=sort (scan_chunk($chunk));
 is_deeply(\@array,[sort qw{parent/doesnotexists.pm}]);
 }
+
+{
+my $chunk=<<'EOT';
+use Catalyst qw/-Debug ConfigLoader Session::State::Cookie/
+EOT
+#-Debug should be skipped
+my @array=sort (scan_chunk($chunk));
+is_deeply(\@array,[sort qw{Catalyst.pm Catalyst/Plugin/ConfigLoader.pm Catalyst/Plugin/Session/State/Cookie.pm}]);
+}
+
+

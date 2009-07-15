@@ -2,6 +2,7 @@
 * Add tests for scan_chunk (Alexandr Ciornii)
 * Add special case for parent.pm (Alexandr Ciornii)
 * Fix for "use parent::something" (Alexandr Ciornii)
+* Add special case for Catalyst.pm (Alexandr Ciornii)
 
 [Changes for 0.91 - 2009-06-22]
 * Add special case for Tk's setPalette call (Christoph Lamprecht)

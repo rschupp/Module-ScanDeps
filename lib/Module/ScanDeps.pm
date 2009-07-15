@@ -742,6 +742,10 @@ sub scan_line {
 sub _typical_module_loader_chunk {
   local $_ = shift;
   my $loader = shift;
+  my $prefix='';
+  if (@_ and $_[0]) {
+    $prefix=$_[0].'::';
+  }
   my $loader_file = $loader;
   $loader_file =~ s/::/\//;
   $loader_file .= ".pm";
@@ -750,8 +754,9 @@ sub _typical_module_loader_chunk {
   if (/^\s* use \s+ $loader(?!\:) \b \s* (.*)/sx) {
     return [
       $loader_file,
-      map { s{::}{/}g; "$_.pm" }
-      grep { length and !/^q[qw]?$/ } split(/[^\w:]+/, $1)
+      map { my $mod="$prefix$_";$mod=~s{::}{/}g; "$mod.pm" }
+      grep { length and !/^q[qw]?$/ and !/-/ } split(/[^\w:-]+/, $1)
+      #should skip any module name that contains '-', not split it in two
     ];
   }
   return();
@@ -768,6 +773,11 @@ sub scan_chunk {
         # scan for the typical module-loader modules
         foreach my $loader (qw(asa base parent prefork POE encoding maybe only::matching)) {
           my $retval = _typical_module_loader_chunk($_, $loader);
+          return $retval if $retval;
+        }
+
+        foreach my $loader (qw(Catalyst)) {
+          my $retval = _typical_module_loader_chunk($_, $loader,'Catalyst::Plugin');
           return $retval if $retval;
         }
 
