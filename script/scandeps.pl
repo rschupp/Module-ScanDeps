@@ -10,7 +10,7 @@ use ExtUtils::MakeMaker;
 use subs qw( _name _modtree );
 
 my %opts;
-getopts('BVRxce:', \%opts);
+getopts('BVRxce:C:', \%opts);
 
 my (%map, %skip);
 my $core    = $opts{B};
@@ -26,7 +26,7 @@ if ($eval) {
     push @ARGV, $filename;
 }
 
-die "Usage: $0 [ -B ] [ -V ] [ -x | -c ] [ -R ] [ -e STRING | FILE ... ]\n" unless @ARGV;
+die "Usage: $0 [ -B ] [ -V ] [ -x | -c ] [ -R ] [-C FILE ] [ -e STRING | FILE ... ]\n" unless @ARGV;
 
 my @files = @ARGV;
 while (<>) {
@@ -40,6 +40,7 @@ my $map = scan_deps(
     $opts{x} ? ( execute => 1 ) :
     $opts{c} ? ( compile => 1 ) : (),
     $opts{V} ? ( warn_missing => 1 ) : (),
+    $opts{C} ? ( cache_file   => $opts{C}) : (),
 );
 
 
@@ -145,6 +146,7 @@ scandeps.pl - Scan file prerequisites
     % scandeps.pl -B *.pm       # Include core modules
     % scandeps.pl -V *.pm       # Show autoload/shared/data files
     % scandeps.pl -R *.pm       # Don't recurse
+    % scandeps.pl -C CACHEFILE  # use CACHEFILE to cache dependencies
 
 =head1 DESCRIPTION
 
@@ -201,6 +203,11 @@ show dependencies between modules and availability.
 Additionally, warns of any missing dependencies. If you find missing
 dependencies that aren't really dependencies, you have probably found
 false positives.
+
+=item -C CACHEFILE
+
+Use CACHEFILE to speed up the scanning process by caching dependencies.
+Creates CACHEFILE if it does not exist yet.
 
 =back
 

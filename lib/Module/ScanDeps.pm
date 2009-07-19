@@ -1,6 +1,7 @@
 package Module::ScanDeps;
 use 5.006;
 use strict;
+use warnings;
 use vars qw( $VERSION @EXPORT @EXPORT_OK @ISA $CurrentPackage @IncludeLibs $ScanFileRE );
 
 $VERSION   = '0.92';
@@ -95,9 +96,9 @@ the structure returned by C<get_files>.
 =head2 B<scan_deps>
 
     $rv_ref = scan_deps(
-        files   => \@files,     recurse => $recurse,
-        rv      => \%rv,        skip    => \%skip,
-        compile => $compile,    execute => $execute,
+        files      => \@files,     recurse => $recurse,
+        rv         => \%rv,        skip    => \%skip,
+        compile    => $compile,    execute => $execute,
     );
     $rv_ref = scan_deps(@files); # shorthand, with recurse => 1
 
@@ -118,6 +119,10 @@ termination to determine additional runtime dependencies.
 
 If C<$execute> is an array reference, runs the files contained
 in it instead of C<@files>.
+
+If performance of the scanning process is a concern, C<cache_file> can be
+set to a filename. The scanning results will be cached and written to the
+file. This will speed up the scanning process on subsequent runs.
 
 Additionally, an option C<warn_missing> is recognized. If set to true,
 C<scan_deps> issues a warning to STDERR for every module file that the
@@ -499,7 +504,7 @@ sub path_to_inc_name($$) {
     return $inc_name;
 }
 
-my $Keys = 'files|keys|recurse|rv|skip|first|execute|compile|warn_missing';
+my $Keys = 'files|keys|recurse|rv|skip|first|execute|compile|warn_missing|cache_cb|cache_file';
 sub scan_deps {
     my %args = (
         rv => {},
@@ -509,7 +514,21 @@ sub scan_deps {
     if (!defined($args{keys})) {
         $args{keys} = [map {path_to_inc_name($_, $args{warn_missing})} @{$args{files}}];
     }
-
+    my $cache_file = $args{cache_file};
+    my $using_cache;
+    if ($cache_file) {
+        require Module::ScanDeps::Cache;
+        $using_cache = Module::ScanDeps::Cache::init_from_file($cache_file);
+        if( $using_cache ){
+            $args{cache_cb} = Module::ScanDeps::Cache::get_cache_cb();
+        }else{
+            my @missing = Module::ScanDeps::Cache::prereq_missing();
+            warn join(' ',
+                      "Can not use cache_file: Needs Modules [",
+                      @missing,
+                      "]\n",);
+        }
+    }
     my ($type, $path);
     foreach my $input_file (@{$args{files}}) {
         if ($input_file !~ $ScanFileRE) {
@@ -552,6 +571,10 @@ sub scan_deps {
         );
     }
 
+    if ( $using_cache ){
+        Module::ScanDeps::Cache::store_cache();
+    }
+
     # do not include the input files themselves as dependencies!
     delete $args{rv}{$_} foreach @{$args{files}};
 
@@ -560,8 +583,12 @@ sub scan_deps {
 
 sub scan_deps_static {
     my ($args) = @_;
-    my ($files, $keys, $recurse, $rv, $skip, $first, $execute, $compile, $_skip) =
-        @$args{qw( files keys recurse rv skip first execute compile _skip )};
+    my ($files,  $keys, $recurse, $rv,
+        $skip,  $first, $execute, $compile,
+        $cache_cb, $_skip)
+        = @$args{qw( files keys  recurse rv
+                     skip  first execute compile
+                     cache_cb _skip )};
 
     $rv   ||= {};
     $_skip ||= { %{$skip || {}} };
@@ -573,66 +600,62 @@ sub scan_deps_static {
           and $file ne lc($file) and $_skip->{lc($file)}++;
         next unless $file =~ $ScanFileRE;
 
-        local *FH;
-        open FH, $file or die "Cannot open $file: $!";
-
-        $SeenTk = 0;
-        # Line-by-line scanning
-        LINE:
-        while (<FH>) {
-            chomp(my $line = $_);
-            foreach my $pm (scan_line($line)) {
-                last LINE if $pm eq '__END__';
-
-                # Skip Tk hits from Term::ReadLine and Tcl::Tk
-                my $pathsep = qr/\/|\\|::/;
-                if ($pm =~ /^Tk\b/) {
-                  next if $file =~ /(?:^|${pathsep})Term${pathsep}ReadLine\.pm$/;
-                  next if $file =~ /(?:^|${pathsep})Tcl${pathsep}Tk\W/;
-                }
-
-                if ($pm eq '__POD__') {
-                    while (<FH>) { last if (/^=cut/) }
-                    next LINE;
-                }
-
-                $pm = 'CGI/Apache.pm' if $file =~ /^Apache(?:\.pm)$/;
-
-                add_deps(
-                    used_by => $key,
-                    rv      => $args->{rv},
-                    modules => [$pm],
-                    skip    => $args->{skip},
-                    warn_missing => $args->{warn_missing},
-                );
-
-                my $preload = _get_preload($pm) or next;
-
-                add_deps(
-                    used_by => $key,
-                    rv      => $args->{rv},
-                    modules => $preload,
-                    skip    => $args->{skip},
-                    warn_missing => $args->{warn_missing},
-                );
+        my @pm;
+        my $found_in_cache;
+        if ($cache_cb){
+            my $pm_aref;
+            # cache_cb populates \@pm on success
+            $found_in_cache = $cache_cb->(action => 'read',
+                                          key    => $key,
+                                          file   => $file,
+                                          modules => \@pm,
+                                      );
+            unless( $found_in_cache ){
+                @pm = scan_file($file);
+                $cache_cb->(action => 'write',
+                            key    => $key,
+                            file   => $file,
+                            modules => \@pm,
+                        );
             }
+        }else{ # no caching callback given
+            @pm = scan_file($file);
         }
-        close FH;
+        
+        foreach my $pm (@pm){
+            add_deps(
+                     used_by => $key,
+                     rv      => $args->{rv},
+                     modules => [$pm],
+                     skip    => $args->{skip},
+                     warn_missing => $args->{warn_missing},
+                 );
 
-        # }}}
+            my $preload = _get_preload($pm) or next;
+
+            add_deps(
+                     used_by => $key,
+                     rv      => $args->{rv},
+                     modules => $preload,
+                     skip    => $args->{skip},
+                     warn_missing => $args->{warn_missing},
+                 );
+        }
     }
 
     # Top-level recursion handling {{{
+   
     while ($recurse) {
         my $count = keys %$rv;
         my @files = sort grep -T $_->{file}, values %$rv;
         scan_deps_static({
-            files   => [ map $_->{file}, @files ],
-            keys    => [ map $_->{key},  @files ],
-            rv      => $rv,
-            skip    => $skip,
-            recurse => 0,
-            _skip   => $_skip,
+            files    => [ map $_->{file}, @files ],
+            keys     => [ map $_->{key},  @files ],
+            rv       => $rv,
+            skip     => $skip,
+            recurse  => 0,
+            cache_cb => $cache_cb,
+            _skip    => $_skip,
         }) or ($args->{_deep} and return);
         last if $count == keys %$rv;
     }
@@ -689,6 +712,43 @@ sub scan_deps_runtime {
     return ($rv);
 }
 
+sub scan_file{
+    my $file = shift;
+    my %found;
+    my $FH;
+    open $FH, $file or die "Cannot open $file: $!";
+
+    $SeenTk = 0;
+    # Line-by-line scanning
+  LINE:
+    while (<$FH>) {
+        chomp(my $line = $_);
+        foreach my $pm (scan_line($line)) {
+            last LINE if $pm eq '__END__';
+
+            # Skip Tk hits from Term::ReadLine and Tcl::Tk
+            my $pathsep = qr/\/|\\|::/;
+            if ($pm =~ /^Tk\b/) {
+                next if $file =~ /(?:^|${pathsep})Term${pathsep}ReadLine\.pm$/;
+                next if $file =~ /(?:^|${pathsep})Tcl${pathsep}Tk\W/;
+            }
+            if ($pm eq '__POD__') {
+                while (<$FH>) {
+                    last if (/^=cut/);
+                }
+                next LINE;
+            }
+            $SeenTk || do{$SeenTk = 1 if $pm =~ /Tk\.pm$/;};
+            # the following line does not make much sense here ???
+            # $file is an absolute path and will never match
+            #$pm = 'CGI/Apache.pm' if $file =~ /^Apache(?:\.pm)$/;
+            $found{$pm}++;
+        }
+    }
+    close $FH or die "Cannot close $file: $!";
+    return keys %found;
+}
+
 sub scan_line {
     my $line = shift;
     my %found;
@@ -708,7 +768,8 @@ sub scan_line {
         # use VERSION:
         if (/^\s*(?:use|require)\s+([\d\._]+)/) {
           # include feaure.pm if we have 5.9.5 or better
-          if (version->new($1) >= version->new("5.9.5")) { # seems to catch 5.9, too (but not 5.9.4)
+          if (version->new($1) >= version->new("5.9.5")) {
+              # seems to catch 5.9, too (but not 5.9.4)
             return "feature.pm";
           }
         }
@@ -891,6 +952,7 @@ sub _add_info {
             }
         }
     }
+
     $rv->{$module} ||= {
         file => $file,
         key  => $module,
@@ -949,6 +1011,7 @@ sub add_deps {
                 $type = 'shared' if $ext eq lc(dl_ext());
                 $type = 'autoload' if ($ext eq '.ix' or $ext eq '.al');
                 $type ||= 'data';
+
                 _add_info( rv     => $rv,        module  => "auto/$path/$_->{name}",
                            file   => $_->{file}, used_by => $module,
                            type   => $type );

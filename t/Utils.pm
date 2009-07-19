@@ -157,8 +157,6 @@ sub compare_scandeps_rvs {
     }
 }
 
-1;
-
 sub generic_abs_path {
   my $file = shift @_;
   $file = File::Spec->rel2abs($file);
@@ -166,5 +164,7 @@ sub generic_abs_path {
   return $file;
 }
 
+
+1;
 # Marks the end of any code. Any symbols after this are ignored. Use for documentation
 __END__
