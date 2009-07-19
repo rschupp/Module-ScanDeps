@@ -1,3 +1,6 @@
+[Changes for 0.93 - 2009-07-19]
+* Implement caching of dependencies (Christoph Lamprecht)
+
 [Changes for 0.92 - 2009-07-19]
 * Fix bug with {type} being set to unexpected values in some cases (Christoph Lamprecht)
 * Add tests for scan_chunk (Alexandr Ciornii)
