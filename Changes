@@ -1,3 +1,5 @@
+* Add tests for scan_line (Alexandr Ciornii)
+
 [Changes for 0.93 - 2009-07-19]
 * Implement caching of dependencies (Christoph Lamprecht)
 
