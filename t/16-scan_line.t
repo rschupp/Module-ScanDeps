@@ -29,6 +29,6 @@ EOT
 eval {
   scan_line($chunk);
 };
-ok(!$@);
+is($@,'');
 }
 
