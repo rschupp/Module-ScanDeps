@@ -766,8 +766,8 @@ sub scan_line {
             return;
         }
         # use VERSION:
-        if (/^\s*(?:use|require)\s+([\d\._]+)/) {
-          # include feaure.pm if we have 5.9.5 or better
+        if (/^\s*(?:use|require)\s+v?(\d[\d\._]*)/) {
+          # include feature.pm if we have 5.9.5 or better
           if (version->new($1) >= version->new("5.9.5")) {
               # seems to catch 5.9, too (but not 5.9.4)
             return "feature.pm";

@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 2;
+use Test::More tests => 3;
 use Module::ScanDeps qw/scan_line/;
 
 {
@@ -21,3 +21,14 @@ EOT
 my @array=sort (scan_line($chunk));
 is_deeply(\@array,[sort qw{feature.pm}]);
 }
+
+{# RT#48151
+my $chunk=<<'EOT';
+require __PACKAGE__ . "SomeExt.pm";
+EOT
+eval {
+  scan_line($chunk);
+};
+ok(!$@);
+}
+
