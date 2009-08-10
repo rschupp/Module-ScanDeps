@@ -6,10 +6,15 @@ use warnings;
 use lib 't';
 use vars qw/%INC/;
 use File::Temp;
-use Test::More tests => 3;
+use Test::More;
 use Cwd;
 use Data::Dumper;
 use Config qw/%Config/;
+
+BEGIN {
+  plan('skip_all', 'Cwd is builtin on OS/2') if $^O eq 'os2';
+  plan(tests => 3);
+}
 
 # Tests that scan_deps finds the shared library associated
 # with an XS module (example: Cwd) both when scanned as a
