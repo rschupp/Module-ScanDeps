@@ -1,3 +1,5 @@
+* Fix "uninitialized value" warnings (Dave Rolsky)
+
 [Changes for 0.94 - 2009-08-10]
 * Add tests for scan_line (Alexandr Ciornii)
 * RT#48151 fixed, "require __PACKAGE__" should not die (Alexandr Ciornii)

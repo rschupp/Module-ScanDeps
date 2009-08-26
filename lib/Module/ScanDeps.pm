@@ -647,7 +647,7 @@ sub scan_deps_static {
    
     while ($recurse) {
         my $count = keys %$rv;
-        my @files = sort grep -T $_->{file}, values %$rv;
+        my @files = sort grep { defined $_->{file} && -T $_->{file} } values %$rv;
         scan_deps_static({
             files    => [ map $_->{file}, @files ],
             keys     => [ map $_->{key},  @files ],
@@ -1007,9 +1007,11 @@ sub add_deps {
                 next if $_->{name} =~ m/(?:^|\/)\.(?:exists|packlist)$/;
                 my ($ext,$type);
                 $ext = lc($1) if $_->{name} =~ /(\.[^.]+)$/;
-                next if $ext eq lc(lib_ext());
-                $type = 'shared' if $ext eq lc(dl_ext());
-                $type = 'autoload' if ($ext eq '.ix' or $ext eq '.al');
+                if (defined $ext) {
+                    next if $ext eq lc(lib_ext());
+                    $type = 'shared' if $ext eq lc(dl_ext());
+                    $type = 'autoload' if ($ext eq '.ix' or $ext eq '.al');
+                }
                 $type ||= 'data';
 
                 _add_info( rv     => $rv,        module  => "auto/$path/$_->{name}",
@@ -1023,6 +1025,7 @@ sub add_deps {
 
 sub _find_in_inc {
     my $file = shift;
+    return unless defined $file;
 
     foreach my $dir (grep !/\bBSDPAN\b/, @INC, @IncludeLibs) {
         return "$dir/$file" if -f "$dir/$file";
