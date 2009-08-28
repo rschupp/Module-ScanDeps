@@ -340,6 +340,7 @@ my %Preload;
     'Net/SSH/Perl.pm'               => 'sub',
     'PAR/Repository.pm'             => 'sub',
     'PAR/Repository/Client.pm'      => 'sub',
+    'Perl/Critic.pm'                => 'sub', #not only Perl/Critic/Policy
     'PDF/API2/Resource/Font.pm'     => 'sub',
     'PDF/API2/Basic/TTF/Font.pm'    => sub {
         _glob_in_inc('PDF/API2/Basic/TTF', 1);
