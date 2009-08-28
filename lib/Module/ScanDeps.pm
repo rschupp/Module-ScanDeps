@@ -275,6 +275,7 @@ my %Preload;
         termios.ph asm/termios.ph sys/termiox.ph sys/termios.ph sys/ttycom.ph
     ) ],
     'Email/Send.pm' => 'sub',
+    'Event.pm' => [ map {"Event/$_.pm" } qw(idle io signal timer var)],
     'ExtUtils/MakeMaker.pm' => sub {
         grep /\bMM_/, _glob_in_inc('ExtUtils', 1);
     },
