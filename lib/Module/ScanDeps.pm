@@ -403,6 +403,7 @@ my %Preload;
     'Win32/Exe.pm'         => 'sub',
     'Win32/TieRegistry.pm' => [qw( Win32API/Registry.pm )],
     'Win32/SystemInfo.pm'  => [qw( Win32/cpuspd.dll )],
+    'Wx.pm'  => [qw( attributes.pm Alien/wxWidgets/msw_2_8_10_uni_gcc_3_4/lib/wxbase28u_gcc_custom.dll)], #still cannot find this .dll
     'XML/Parser.pm'        => sub {
         _glob_in_inc('XML/Parser/Style', 1),
         _glob_in_inc('XML/Parser/Encodings', 1),
