@@ -1,8 +1,9 @@
+[Changes for 0.95 - 2009-10-16]
 * Fix "uninitialized value" warnings (Dave Rolsky)
 * Add special case for Perl::Critic (Alexandr Ciornii)
 * Add special case for Event (Alexandr Ciornii)
 * Add special case for Wx.pm (Alexandr Ciornii)
-
+* Add special case for Log::Any
 
 [Changes for 0.94 - 2009-08-10]
 * Add tests for scan_line (Alexandr Ciornii)

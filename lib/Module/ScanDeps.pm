@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use vars qw( $VERSION @EXPORT @EXPORT_OK @ISA $CurrentPackage @IncludeLibs $ScanFileRE );
 
-$VERSION   = '0.94';
+$VERSION   = '0.95';
 @EXPORT    = qw( scan_deps scan_deps_runtime );
 @EXPORT_OK = qw( scan_line scan_chunk add_deps scan_deps_runtime path_to_inc_name );
 
@@ -304,6 +304,7 @@ my %Preload;
     ) ],
     'IO/Socket.pm'     => [qw( IO/Socket/UNIX.pm )],
     'Log/Log4perl.pm' => 'sub',
+    'Log/Any.pm' => 'sub',
     'LWP/UserAgent.pm' => sub {
         return(
             qw(
