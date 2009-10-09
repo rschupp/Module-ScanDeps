@@ -13,6 +13,7 @@ use Config qw/%Config/;
 
 BEGIN {
   plan('skip_all', 'Cwd is builtin on OS/2') if $^O eq 'os2';
+  plan('skip_all', 'Cwd does not have a C part') if Cwd->VERSION<2.08; #2.08 has, 2.04 does not
   plan(tests => 3);
 }
 
