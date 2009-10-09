@@ -10,7 +10,7 @@ use Module::ScanDeps qw/scan_line/;
 my $chunk=<<'EOT';
 use strict;
 EOT
-my @array=sort (scan_line($chunk));
+my @array=scan_line($chunk);@array=sort @array;
 is_deeply(\@array,[sort qw{strict.pm}]);
 }
 
@@ -18,7 +18,7 @@ is_deeply(\@array,[sort qw{strict.pm}]);
 my $chunk=<<'EOT';
 require 5.10;
 EOT
-my @array=sort (scan_line($chunk));
+my @array=scan_line($chunk);@array=sort @array;
 is_deeply(\@array,[sort qw{feature.pm}]);
 }
 

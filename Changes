@@ -1,3 +1,5 @@
+* perl 5.6.1 compatibility (Alexandr Ciornii)
+
 [Changes for 0.95 - 2009-10-16]
 * Fix "uninitialized value" warnings (Dave Rolsky)
 * Add special case for Perl::Critic (Alexandr Ciornii)
