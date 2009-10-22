@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 5;
+use Test::More tests => 6;
 use Module::ScanDeps qw/scan_chunk/;
 
 {
@@ -45,4 +45,13 @@ EOT
 #-Debug should be skipped
 my @array=scan_chunk($chunk);@array=sort @array;
 is_deeply(\@array,[sort qw{Catalyst.pm Catalyst/Plugin/ConfigLoader.pm Catalyst/Plugin/Session/State/Cookie.pm}]);
+}
+
+{
+my $chunk=<<'EOT';
+use I18N::LangTags 0.30 ();
+EOT
+#-Debug should be skipped
+my @array=scan_chunk($chunk);@array=sort @array;
+is_deeply(\@array,[sort qw{I18N/LangTags.pm}]);
 }
