@@ -1,3 +1,5 @@
+
+[Changes for 0.96 - 2009-11-13]
 * perl 5.6.1 compatibility (Alexandr Ciornii)
 * Test for "use module version;" (Alexandr Ciornii)
 
