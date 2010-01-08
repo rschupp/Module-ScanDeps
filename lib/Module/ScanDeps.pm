@@ -254,6 +254,8 @@ my %Preload;
                 _glob_in_inc('Catalyst/DispatchType', 1));
     },
     'Catalyst/Engine.pm' => 'sub',
+    'CGI/Application/Plugin/AutoRunmode.pm' => [qw( Attribute/Handlers.pm )],
+
     'Class/MakeMethods.pm' => 'sub',
     'Class/MethodMaker.pm' => 'sub',
     'Config/Any.pm' =>'sub',
