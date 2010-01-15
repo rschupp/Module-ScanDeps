@@ -1,5 +1,6 @@
 * Add special case for CGI::Application::Plugin::AutoRunmode (Alexandr Ciornii)
 * Add special case for CGI::Application::Plugin::Authentication (Alexandr Ciornii)
+* Add special case for DBIx::Perlish (Alexandr Ciornii)
 
 [Changes for 0.96 - 2009-11-13]
 * perl 5.6.1 compatibility (Alexandr Ciornii)

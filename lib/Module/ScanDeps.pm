@@ -272,6 +272,7 @@ my %Preload;
     },
     'DBIx/Class.pm' => 'sub',
     'DBIx/SearchBuilder.pm' => 'sub',
+    'DBIx/Perlish.pm' => [qw( attributes.pm )],
     'DBIx/ReportBuilder.pm' => 'sub',
     'Device/ParallelPort.pm' => 'sub',
     'Device/SerialPort.pm' => [ qw(
