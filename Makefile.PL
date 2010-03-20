@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 use 5.006;
-use inc::Module::Install;
+use inc::Module::Install 0.92;
 
 name            'Module-ScanDeps';
 all_from        'lib/Module/ScanDeps.pm';
