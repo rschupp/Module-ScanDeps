@@ -96,7 +96,7 @@ sub _dl_mod2filename {
     return unless defined &{"$mod\::bootstrap"};
 
     eval { require B; require Config; 1 } or return;
-    my $dl_ext = $Config::Config{dlext} if %Config::Config;
+    my $dl_ext = $Config::Config{dlext};
 
     # Copied from XSLoader
     my @modparts = split(/::/, $mod);
