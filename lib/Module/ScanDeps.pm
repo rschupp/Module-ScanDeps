@@ -401,6 +401,10 @@ my %Preload;
     'Tk/FBox.pm'        => [qw( Tk/folder.xpm Tk/file.xpm )],
     'Tk/Getopt.pm'      => [qw( Tk/openfolder.xpm Tk/win.xbm )],
     'Tk/Toplevel.pm'    => [qw( Tk/Wm.pm )],
+    'Unicode/UCD.pm'	=> sub {
+        # add data files (cf. sub openunicode in Unicode::UCD)
+	grep /\.txt$/, map "unicore/$_->{name}", _glob_in_inc('unicore', 0);
+    },
     'URI.pm'            => sub {
         grep !/.\b[_A-Z]/, _glob_in_inc('URI', 1);
     },
