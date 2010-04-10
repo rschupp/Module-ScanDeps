@@ -401,9 +401,9 @@ my %Preload;
     'Tk/FBox.pm'        => [qw( Tk/folder.xpm Tk/file.xpm )],
     'Tk/Getopt.pm'      => [qw( Tk/openfolder.xpm Tk/win.xbm )],
     'Tk/Toplevel.pm'    => [qw( Tk/Wm.pm )],
-    'Unicode/UCD.pm'	=> sub {
+    'Unicode/UCD.pm'    => sub {
         # add data files (cf. sub openunicode in Unicode::UCD)
-	grep /\.txt$/, map "unicore/$_->{name}", _glob_in_inc('unicore', 0);
+        grep /\.txt$/, map "unicore/$_->{name}", _glob_in_inc('unicore', 0);
     },
     'URI.pm'            => sub {
         grep !/.\b[_A-Z]/, _glob_in_inc('URI', 1);
@@ -1029,6 +1029,23 @@ sub add_deps {
                 _add_info( rv     => $rv,        module  => "auto/$path/$_->{name}",
                            file   => $_->{file}, used_by => $module,
                            type   => $type );
+            }
+
+            ### Now, handle module and distribudion share dirs
+            # convert 'Module/Name' to 'Module-Name'
+            my $modname = $path;
+            $modname =~ s|/|-|g;
+            # TODO: get real distribution name related to module name
+            my $distname = $modname;
+            foreach (_glob_in_inc("auto/share/module/$modname")) {
+                _add_info( rv     => $rv,        module  => "auto/share/module/$modname/$_->{name}",
+                           file   => $_->{file}, used_by => $module,
+                           type   => 'data' );
+            }
+            foreach (_glob_in_inc("auto/share/dist/$distname")) {
+                _add_info( rv     => $rv,        module  => "auto/share/dist/$distname/$_->{name}",
+                           file   => $_->{file}, used_by => $module,
+                           type   => 'data' );
             }
         }
     } # end for modules
