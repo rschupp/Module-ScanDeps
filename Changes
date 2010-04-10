@@ -1,3 +1,7 @@
+[Changes for 0.97 - 2010-04-10]
+* Pack the content of module/distribution sharedirs is automatically. (kmx)
+* RT #56020 - add data files used by Unicode::UCD (Roderich Schupp)
+* RT #55746 - remove bogus "... if %Config::Config" condition (Roderich Schupp)
 * Add special case for CGI::Application::Plugin::AutoRunmode (Alexandr Ciornii)
 * Add special case for CGI::Application::Plugin::Authentication (Alexandr Ciornii)
 * Add special case for DBIx::Perlish (Alexandr Ciornii)
