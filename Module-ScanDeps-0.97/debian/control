@@ -1,0 +1,14 @@
+Source: libmodule-scandeps-perl
+Section: perl
+Priority: optional
+Build-Depends: debhelper (>= 4.0.2)
+Build-Depends-Indep: perl (>= 5.8.0-7)
+Maintainer: Florian Ragwitz <rafl@debian.org>
+Standards-Version: 3.6.2
+
+Package: libmodule-scandeps-perl
+Architecture: all
+Depends: ${perl:Depends}
+Description: perl module to recursively scan Perl code for dependencies
+ This module scans potential modules used by perl programs and returns
+ informations about their module dependencies.
