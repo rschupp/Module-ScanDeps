@@ -307,6 +307,12 @@ my %Preload;
         IO/Pipe.pm          IO/Socket.pm        IO/Dir.pm
     ) ],
     'IO/Socket.pm'     => [qw( IO/Socket/UNIX.pm )],
+    'JSON.pm' => sub {
+        # add JSON/PP*.pm, JSON/PP/*.pm
+        # and ignore other JSON::* modules (e.g. JSON/Syck.pm, JSON/Any.pm);
+        # but accept JSON::XS, too (because JSON.pm might use it if present)
+        return( grep /^JSON\/(PP|XS)/, _glob_in_inc('JSON', 1) );
+    },
     'Log/Log4perl.pm' => 'sub',
     'Log/Any.pm' => 'sub',
     'LWP/UserAgent.pm' => sub {
