@@ -372,6 +372,9 @@ my %Preload;
     'Parse/Binary.pm'               => 'sub',
     'PerlIO.pm'                     => [ 'PerlIO/scalar.pm' ],
     'Regexp/Common.pm'              => 'sub',
+    'RPC/XML/ParserFactory.pm'      => sub {
+        _glob_in_inc('RPC/XML/Parser', 1);
+    },
     'SerialJunk.pm' => [ qw(
         termios.ph asm/termios.ph sys/termiox.ph sys/termios.ph sys/ttycom.ph
     ) ],
