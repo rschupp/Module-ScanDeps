@@ -469,14 +469,21 @@ my %Preload;
     # anybody using threads::shared is likely to declare variables
     # with attribute :shared
     'utf8.pm' => [
+        # NOTE: Do NOT indiscrimantly add every *.pl below unicore. This would
+        # be a major performance regression. A simple
+        #
+        #   scandeps -B -e 'use utf8;' 
+        #
+        # takes 9.8 seconds wallclock time with the current implementation,
+        # but a version which adds every *.pl file takes 24.6 seconds.
         'utf8_heavy.pl', do {
             my $dir = 'unicore';
             my @subdirs = qw( To );
             my @files = map "$dir/lib/$_->{name}", _glob_in_inc("$dir/lib");
 
             if (@files) {
-                # 5.8.x
-                push @files, (map "$dir/$_.pl", qw( Exact Canonical ));
+                # 5.8.x, 5.10.x (Exact, Canonical), 5.12.x (Heavy)
+                push @files, (map "$dir/$_.pl", qw( Exact Canonical  Heavy ));
             }
             else {
                 # 5.6.x
