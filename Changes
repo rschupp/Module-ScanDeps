@@ -1,3 +1,10 @@
+[Changes for 0.98 - 2010-07-26]
+* Make %Preload entry for "utf8.pm" lazy (Roderich Schupp)
+* Upgrade to Module::Install 1.00 (Roderich Schupp)
+* RT #58093: Par-Packer not including all dependencies (unicore/Heavy.pl) (Roderich Schupp)
+* Add %Preload rule for RPC::XML (Roderich Schupp)
+* RT #57494: add %Preload rule for JSON.pm (Roderich Schupp)
+
 [Changes for 0.97 - 2010-04-10]
 * Pack the content of module/distribution sharedirs is automatically. (kmx)
 * RT #56020 - add data files used by Unicode::UCD (Roderich Schupp)
