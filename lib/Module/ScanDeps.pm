@@ -468,7 +468,7 @@ my %Preload;
     'threads/shared.pm' => [qw( attributes.pm )],
     # anybody using threads::shared is likely to declare variables
     # with attribute :shared
-    'utf8.pm' => [
+    'utf8.pm' => sub {
         # NOTE: Do NOT indiscrimantly add every *.pl below unicore. This would
         # be a major performance regression. A simple
         #
@@ -476,7 +476,7 @@ my %Preload;
         #
         # takes 9.8 seconds wallclock time with the current implementation,
         # but a version which adds every *.pl file takes 24.6 seconds.
-        'utf8_heavy.pl', do {
+        return 'utf8_heavy.pl', do {
             my $dir = 'unicore';
             my @subdirs = qw( To );
             my @files = map "$dir/lib/$_->{name}", _glob_in_inc("$dir/lib");
@@ -500,10 +500,10 @@ my %Preload;
             }
             @files;
         }
-    ],
-    'charnames.pm' => [
+    },
+    'charnames.pm' => sub {
         _find_in_inc('unicore/Name.pl') ? 'unicore/Name.pl' : 'unicode/Name.pl'
-    ],
+    },
 );
 
 # }}}
