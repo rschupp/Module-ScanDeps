@@ -36,8 +36,18 @@ my ( $entry ) =  grep { /^auto\b.*\b(Cwd$extra)\.$Config::Config{dlext}/ } keys 
 
 ok( $entry, 'we have some key that looks like it pulled in the Cwd or Glob shared lib' );
 
-# build a path the the Cwd library based on the entry in %INC and our Module::ScanDeps path
+# Build a path the the Cwd library based on the entry in %INC and 
+# our Module::ScanDeps path: if the module Foo::Bar was found as 
+# /some/path/Foo/Bar.pm, assume its shared library is in 
+# /some/path/auto/Foo/Bar/Bar.$dlext
+# This is not really guaranteed by the way DynaLoader works, but it is
+# a reasonable assumption for any module installed by ExtUtils::MakeMaker ...
 $cwd_bundle_path =~ s,(Cwd|File/Glob)\.pm$,$entry,;
+
+# ... except when the module wasn't installed, but located via blib 
+# (pm file is below blib/lib, but library is below blib/arch). 
+# CPAN Testers does this.
+$cwd_bundle_path =~ s,\bblib\b(.)\blib\b,blib$1arch,;
 
 is( $rv->{$entry}->{file}, $cwd_bundle_path, 'the full bundle path we got looks legit' );
 
