@@ -415,7 +415,7 @@ my %Preload;
         grep /\.txt$/, map "unicore/$_->{name}", _glob_in_inc('unicore', 0);
     },
     'URI.pm'            => sub {
-        grep !/.\b[_A-Z]/, _glob_in_inc('URI', 1);
+        grep !/urn/, _glob_in_inc('URI', 1);
     },
     'Win32/EventLog.pm'    => [qw( Win32/IPC.pm )],
     'Win32/Exe.pm'         => 'sub',
