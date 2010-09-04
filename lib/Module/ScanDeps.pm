@@ -809,14 +809,18 @@ sub scan_line {
             return ("autouse.pm", "$autouse.pm");
         }
 
-        if (my ($libs) = /\b(?:use\s+lib\s+|(?:unshift|push)\W+\@INC\W+)(.+)/)
+        if (my ($how, $libs) = /\b(use\s+lib\s+|(?:unshift|push)\s+\@INC\s+,)(.+)/)
         {
             my $archname = defined($Config{archname}) ? $Config{archname} : '';
             my $ver = defined($Config{version}) ? $Config{version} : '';
-            foreach (grep(/\w/, split(/["';() ]/, $libs))) {
-                unshift(@INC, "$_/$ver")           if -d "$_/$ver";
-                unshift(@INC, "$_/$archname")      if -d "$_/$archname";
-                unshift(@INC, "$_/$ver/$archname") if -d "$_/$ver/$archname";
+            foreach my $dir (do { no strict; no warnings; eval $libs }) {
+                next unless defined $dir;
+                my @dirs = $dir;
+                push @dirs, "$dir/$ver", "$dir/$archname", "$dir/$ver/$archname" 
+                    if $how =~ /lib/;
+                foreach (@dirs) {
+                    unshift(@INC, $_) if -d $_;
+                }
             }
             next;
         }
@@ -1121,13 +1125,13 @@ sub new {
 
 sub set_file {
     my $self = shift;
-    foreach my $script (@_) {
-        my ($vol, $dir, $file) = File::Spec->splitpath($script);
-        $self->{main} = {
-            key  => $file,
-            file => $script,
-        };
-    }
+    my $script = shift;
+
+    my ($vol, $dir, $file) = File::Spec->splitpath($script);
+    $self->{main} = {
+        key  => $file,
+        file => $script,
+    };
 }
 
 sub set_options {

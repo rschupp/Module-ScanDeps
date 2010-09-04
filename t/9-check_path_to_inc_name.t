@@ -4,12 +4,12 @@ use strict;
 use warnings;
 use Cwd;
 
-use Test::More tests => 6;
+use Test::More tests => 7;
 
 ##############################################################
 # Tests compilation of Module::ScanDeps
 ##############################################################
-BEGIN { use_ok( 'Module::ScanDeps', qw(path_to_inc_name) ); }
+BEGIN { use_ok( 'Module::ScanDeps', qw(path_to_inc_name scan_deps) ); }
 
 my $name;
 my $basepath;
@@ -33,5 +33,9 @@ is(path_to_inc_name($basepath.$name, $warn), $name, "$name correctly returned by
 $basepath = 't/data/check_path_to_inc_name/';
 $name = 'use_scoped_package.pl';
 is(path_to_inc_name($basepath.$name, $warn), $name, "$name correctly returned by path_to_inc_name($basepath$name)");
+
+# 'use lib ...' 
+my $rv = scan_deps("t/data/use_lib.pl");
+ok(exists $rv->{"Some.pm"}, "'use lib ...' correctly interpreted");
 
 __END__
