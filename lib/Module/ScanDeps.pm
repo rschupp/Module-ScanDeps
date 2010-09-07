@@ -832,27 +832,35 @@ sub scan_line {
 }
 
 # short helper for scan_chunk
-sub _typical_module_loader_chunk {
-  local $_ = shift;
-  my $loader = shift;
-  my $prefix='';
-  if (@_ and $_[0]) {
-    $prefix=$_[0].'::';
-  }
-  my $loader_file = $loader;
-  $loader_file =~ s/::/\//;
-  $loader_file .= ".pm";
-  $loader = quotemeta($loader);
+my %LoaderRegexp; # cache
+sub _build_loader_regexp {
+    my $loaders = shift;
+    my $prefix = (@_ && $_[0]) ? $_[0].'::' : '';
+   
+    my $loader = join '|', map quotemeta($_), split /\s+/, $loaders;
+    my $regexp = qr/^\s* use \s+ ($loader)(?!\:) \b \s* (.*)/sx;
+    # WARNING: This doesn't take the prefix into account
+    $LoaderRegexp{$loaders} = $regexp;
+    return $regexp
+}
 
-  if (/^\s* use \s+ $loader(?!\:) \b \s* (.*)/sx) {
+# short helper for scan_chunk
+sub _extract_loader_dependency {
+    my $loader = shift;
+    my $loadee = shift;
+    my $prefix = (@_ && $_[0]) ? $_[0].'::' : '';
+
+    my $loader_file = $loader;
+    $loader_file =~ s/::/\//;
+    $loader_file .= ".pm";
+
     return [
-      $loader_file,
-      map { my $mod="$prefix$_";$mod=~s{::}{/}g; "$mod.pm" }
-      grep { length and !/^q[qw]?$/ and !/-/ } split(/[^\w:-]+/, $1)
-      #should skip any module name that contains '-', not split it in two
+        $loader_file,
+        map { my $mod="$prefix$_"; $mod =~ s{::}{/}g; "$mod.pm" }
+        grep { length and !/^q[qw]?$/ and !/-/ }
+        split /[^\w:-]+/, $loadee
+        #should skip any module name that contains '-', not split it in two
     ];
-  }
-  return();
 }
 
 sub scan_chunk {
@@ -864,13 +872,17 @@ sub scan_chunk {
 
         # TODO: There's many more of these "loader" type modules on CPAN!
         # scan for the typical module-loader modules
-        foreach my $loader (qw(asa base parent prefork POE encoding maybe only::matching)) {
-          my $retval = _typical_module_loader_chunk($_, $loader);
+        my $loaders = "asa base parent prefork POE encoding maybe only::matching";
+        # grab pre-calculated regexp or re-build it (and cache it)
+        my $loader_regexp = $LoaderRegexp{$loaders} || _build_loader_regexp($loaders);
+        if ($_ =~ $loader_regexp) { # $1 == loader, $2 == loadee
+          my $retval = _extract_loader_dependency($1, $2);
           return $retval if $retval;
         }
 
-        foreach my $loader (qw(Catalyst)) {
-          my $retval = _typical_module_loader_chunk($_, $loader,'Catalyst::Plugin');
+        $loader_regexp = $LoaderRegexp{"Catalyst"} || _build_loader_regexp("Catalyst", "Catalyst::Plugin");
+        if ($_ =~ $loader_regexp) { # $1 == loader, $2 == loadee
+          my $retval = _extract_loader_dependency($1, $2, "Catalyst::Plugin");
           return $retval if $retval;
         }
 
