@@ -266,6 +266,14 @@ my %Preload;
     'Crypt/Random/Generator.pm' => sub {
         _glob_in_inc('Crypt/Random/Provider', 1);
     },
+    'Date/Manip.pm' => [qw( Date/Manip/DM5.pm Date/Manip/DM6.pm )],
+    'Date/Manip/Base.pm' => sub {
+        _glob_in_inc('Date/Manip/Lang', 1);
+    },
+    'Date/Manip/TZ.pm' => sub {
+        return (_glob_in_inc('Date/Manip/TZ', 1),
+                _glob_in_inc('Date/Manip/Offset', 1));
+    },
     'DateTime/Locale.pm' => 'sub',
     'DBI.pm' => sub {
         grep !/\bProxy\b/, _glob_in_inc('DBD', 1);
