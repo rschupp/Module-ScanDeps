@@ -1254,11 +1254,11 @@ $2/s;
     $fhout->close;
     $fhin->close;
 
-    system($perl, $fname);
+    my $rc = system($perl, $fname);
 
-    _extract_info("$fname.out", $inchash, $dl_shared_objects, $incarray);
-    unlink("$fname");
-    unlink("$fname.out");
+    _extract_info("$fname.out", $inchash, $dl_shared_objects, $incarray) if $rc == 0;
+    unlink("$fname", "$fname.out");
+    die "SYSTEM ERROR in compiling $file: $rc" unless $rc == 0;
 }
 
 sub _execute {
@@ -1277,11 +1277,11 @@ sub _execute {
     $fhin->close;
 
     File::Path::rmtree( ['_Inline'], 0, 1); # XXX hack
-    system($perl, (map { "-I$_" } @IncludeLibs), $fname) == 0 or die "SYSTEM ERROR in executing $file: $?";
+    my $rc = system($perl, (map { "-I$_" } @IncludeLibs), $fname);
 
-    _extract_info("$fname.out", $inchash, $dl_shared_objects, $incarray);
-    unlink("$fname");
-    unlink("$fname.out");
+    _extract_info("$fname.out", $inchash, $dl_shared_objects, $incarray) if $rc == 0;
+    unlink("$fname", "$fname.out");
+    die "SYSTEM ERROR in executing $file: $rc" unless $rc == 0;
 }
 
 # create a new hashref, applying fixups
