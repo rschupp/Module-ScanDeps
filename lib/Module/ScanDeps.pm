@@ -323,6 +323,7 @@ my %Preload;
     },
     'Log/Log4perl.pm' => 'sub',
     'Log/Any.pm' => 'sub',
+    'Log/Report/Dispatcher.pm' => 'sub',
     'LWP/UserAgent.pm' => sub {
         return(
             qw(
