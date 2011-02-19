@@ -1,3 +1,23 @@
+[Changes for 1.00 - 2011-02-19]
+* RT #65855: Special handling for POSIX requested (Roderich Schupp)
+* RT #65252: Temp files left when execute fails (Roderich Schupp)
+* add a %Preload rule for Log::Report::Dispatcher (Roderich Schupp)
+  cf. http://www.nntp.perl.org/group/perl.par/2011/01/msg4871.html
+* add %Preload rule for Date::Manip (Roderich Schupp)
+* speed up scanning *significantly* by not re-constructing regexen
+  for every line of input and reducing the no. of sub calls (Steffen Mueller)
+* add Eric Roode to AUTHORS (Steffen Mueller)
+* RT #61027: "use lib" does not work (Roderich Schupp)
+  scan_line(): When handling "use lib '/some/dir'" we add "/some/dir/ARCHNAME",
+  "/some/dir/VER" and "/some/dir/VER/ARCHNAME", but forgot 
+  to add "/some/dir" itself.
+  While we're at it, improve parsing the argument list of "use lib".
+  Simply eval the string, this should at least make all forms of
+  quoted strings work correctly. 
+* fix URI special case (clkao)
+* fix a regression reported by CPAN Testers (Roderich Schupp)
+* finally: bump version to 1.00
+
 [Changes for 0.98 - 2010-07-26]
 * Make %Preload entry for "utf8.pm" lazy (Roderich Schupp)
 * Upgrade to Module::Install 1.00 (Roderich Schupp)
@@ -595,4 +615,3 @@ Regexp::Common, File::Spec, ExtUtils::MakeMaker.
 
 * written-from-scratch version of dependency finding
   algorithm. 
-
