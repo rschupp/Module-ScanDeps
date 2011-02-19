@@ -376,6 +376,11 @@ my %Preload;
         _glob_in_inc('POE/XS/Loop', 1),
         _glob_in_inc('POE/Loop', 1),
     },
+    'POSIX.pm'                      => sub {
+        map { my $sigmod = $_;
+              map "auto/POSIX/$sigmod/$_->{name}", _glob_in_inc("auto/POSIX/$sigmod");
+            } qw( SigAction SigRt )
+    },
     'PPI.pm'                        => 'sub',
     'Parse/AFP.pm'                  => 'sub',
     'Parse/Binary.pm'               => 'sub',
