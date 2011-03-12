@@ -426,6 +426,7 @@ my %Preload;
     'Tk/Toplevel.pm'    => [qw( Tk/Wm.pm )],
     'Unicode/UCD.pm'    => sub {
         # add data files (cf. sub openunicode in Unicode::UCD)
+        'unicore/version',
         grep /\.txt$/, map "unicore/$_->{name}", _glob_in_inc('unicore', 0);
     },
     'URI.pm'            => sub {
