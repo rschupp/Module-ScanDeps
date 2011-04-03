@@ -1,3 +1,6 @@
+[Changes for 1.02 - 2011-04-03]
+* %Preload: add _all_ *.pl file below .../unicore for utf8.pm
+
 [Changes for 1.01 - 2011-03-26]
 * %Preload: add "unicore/version" for Unicode/UCD.pm 
   (because it contains a call openunicode(..., "version"))
