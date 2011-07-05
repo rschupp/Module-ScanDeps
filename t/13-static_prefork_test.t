@@ -33,13 +33,12 @@ BEGIN { use_ok( 'Module::ScanDeps' ); }
 ##############################################################
 $root = $0;
 
-use prefork "Shell";
-use prefork"less";
+use prefork "less";
 
 my @deps = qw(
     Carp.pm   Config.pm	  Exporter.pm 
     Test/More.pm  strict.pm   vars.pm
-    prefork.pm Shell.pm less.pm
+    prefork.pm less.pm
 );
 
 # Functional i/f
