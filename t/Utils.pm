@@ -46,7 +46,7 @@ sub generic_scandeps_rv_test {
     # Check general properties of the keys
     foreach my $key (keys %$rv) {
         $test->ok(exists($rv->{$key}{key})  && $key eq $rv->{$key}{key}, "For $key: the sub-key matches");
-        $test->ok(exists($rv->{$key}{file}) && $rv->{$key}{file} =~ /(?:^|[\/\\])$key$/
+        $test->ok(exists($rv->{$key}{file}) && $rv->{$key}{file} =~ /(?:^|[\/\\])\Q$key\E$/
                                             && File::Spec->file_name_is_absolute($rv->{$key}{file}), "For $key: the file has been verified");
         $test->ok(exists($rv->{$key}{type}) && $rv->{$key}{type} =~ /^(?:module|autoload|data|shared)$/, "For $key: the type matches module|autoload|data|shared");
 
