@@ -1,3 +1,33 @@
+[Changes for 1.03 - 2011-07-18]
+
+* RT #69213: ScanDeps incompatible with AnyEvent (Perl 5.14, AnyEvent 5.34, PAR 1.00.2)
+  For option -c (compile) M:SD used to wrap the file in one big sub and 
+  appended an END block where it dumps %INC etc; the outer sub causes problems 
+  with certain contructs. Instead we now use an INIT block prepended 
+  to the file.
+
+* RT #69471: Problem with "eval { require SomeModule }" constructions
+  Module::ScanDeps::DataFeed now omits %INC pairs with an undefined value
+  (these may be created by an unsuccessful "require" under certain conditions).
+  Also omit CODE refs from @INC.
+
+* Fix for failing CPAN Testers report 
+  http://www.cpantesters.org/cpan/report/4208fa16-a5d1-11e0-a0bc-c71a7862a918:
+  Perl 5.15.0 got rid of Shell.pm
+
+* Fix for failing CPAN Testers report 
+  http://www.cpantesters.org/cpan/report/772147dc-6c1f-1014-baf2-318eb63ba09a:
+  - regex meta characters in filenames break consistency check
+
+* Simplify Module::ScanDeps::DataFeed somewhat by localizing %INC
+  around "require Module::ScanDeps::DataFeed" and by using Data::Dumper
+  for the actual dump.
+
+* Don't create the tempfiles for DataFeed in the working directory.
+
+* Purge all pod from Module::ScanDeps::DataFeed, advise the  CPAN
+  indexer not to bother with it; same for Module::ScanDeps::Cache.
+
 [Changes for 1.02 - 2011-04-03]
 * %Preload: add _all_ *.pl file below .../unicore for utf8.pm
 
