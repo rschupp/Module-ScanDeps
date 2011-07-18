@@ -1217,25 +1217,54 @@ sub get_files {
 sub _compile {
     my ($perl, $file, $inchash, $dl_shared_objects, $incarray) = @_;
 
-    my ($fhout, $fname) = File::Temp::tempfile("XXXXXX");
-    my $fhin  = FileHandle->new($file) or die "Couldn't open $file\n";
+    require Module::ScanDeps::DataFeed; 
+    # ... so we can find it's full pathname in %INC
 
-    my $line = do { local $/; <$fhin> };
-    $line =~ s/use Module::ScanDeps::DataFeed.*?\n//sg;
-    $line =~ s/^(.*?)((?:[\r\n]+__(?:DATA|END)__[\r\n]+)|$)/
-use Module::ScanDeps::DataFeed '$fname.out';
-sub {
-$1
+    my ($fhout, $feed_file) = File::Temp::tempfile();
+    my $dump_file = "$feed_file.out";
+
+    print $fhout <<'...';
+# This will run _after_ all CHECK blocks and _before_ 
+# the first INIT block of the program to compile.
+INIT    
+{
+...
+
+    # correctly escape filenames
+    require Data::Dumper;
+    print $fhout map { "my $_" } Data::Dumper->Dump(
+                     [ $INC{"Module/ScanDeps/DataFeed.pm"}, $dump_file],
+                     [qw( datafeedpm dump_file )]);
+
+    print $fhout <<'...';
+    # localize %INC etc so that the folllowing require doesn't pollute them
+    {
+        local %INC = %INC;
+        local @INC = @INC;
+        local @DynaLoader::dl_shared_objects = @DynaLoader::dl_shared_objects;
+        local @DynaLoader::dl_modules = @DynaLoader::dl_modules;
+
+        require $datafeedpm;
+    }
+
+    Module::ScanDeps::DataFeed::_dump_info($dump_file);
+
+    exit (0);
 }
-$2/s;
-    $fhout->print($line);
-    $fhout->close;
-    $fhin->close;
+...
 
-    my $rc = system($perl, $fname);
+    # append the file to compile
+    {
+        open my $fhin, "<", $file or die "Couldn't open $file: $!";
+        print $fhout qq[#line 1 "$file"\n], <$fhin>;
+        close $fhin;
+    }
+    close $fhout;
 
-    _extract_info("$fname.out", $inchash, $dl_shared_objects, $incarray) if $rc == 0;
-    unlink("$fname", "$fname.out");
+    my $rc = system($perl, $feed_file);
+
+    _extract_info($dump_file, $inchash, $dl_shared_objects, $incarray) if $rc == 0;
+    unlink($feed_file, $dump_file);
     die "SYSTEM ERROR in compiling $file: $rc" unless $rc == 0;
 }
 
@@ -1274,8 +1303,7 @@ sub _make_rv {
 
     require File::Spec;
 
-    my $key;
-    foreach $key (keys(%$inchash)) {
+    foreach my $key (keys(%$inchash)) {
         my $newkey = $key;
         $newkey =~ s"^(?:(?:$inc)/?)""sg if File::Spec->file_name_is_absolute($newkey);
 
@@ -1287,8 +1315,7 @@ sub _make_rv {
         };
     }
 
-    my $dl_file;
-    foreach $dl_file (@$dl_shared_objects) {
+    foreach my $dl_file (@$dl_shared_objects) {
         my $key = $dl_file;
         $key =~ s"^(?:(?:$inc)/?)""s;
 
@@ -1307,11 +1334,11 @@ sub _extract_info {
     my ($fname, $inchash, $dl_shared_objects, $incarray) = @_;
 
     use vars qw(%inchash @dl_shared_objects @incarray);
-    my $fh = FileHandle->new($fname) or die "Couldn't open $fname";
-    my $line = do { local $/; <$fh> };
-    $fh->close;
 
-    eval $line;
+    unless (do $fname) {
+        die "error extracting info from DataFeed file: ",
+            $@ || "can't read $fname: $!";
+    }
 
     $inchash->{$_} = $inchash{$_} for keys %inchash;
     @$dl_shared_objects = @dl_shared_objects;
