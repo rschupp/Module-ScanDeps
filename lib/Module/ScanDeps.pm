@@ -708,14 +708,9 @@ sub scan_deps_runtime {
     elsif ($execute) {
         my $excarray = (ref($execute)) ? $execute : [@$files];
         my $exc;
-        my $first_flag = 1;
         foreach $exc (@$excarray) {
             ($inchash, $dl_shared_objects, $incarray) = ({}, [], []);
-            _execute(
-                $perl, $exc, $inchash, $dl_shared_objects, $incarray,
-                $first_flag
-            );
-            $first_flag = 0;
+            _execute($perl, $exc, $inchash, $dl_shared_objects, $incarray);
         }
 
         # XXX only retains data from last execute ...  Why? I suspect
@@ -1214,29 +1209,31 @@ sub get_files {
 
 # scan_deps_runtime utility functions
 
-sub _compile {
-    my ($perl, $file, $inchash, $dl_shared_objects, $incarray) = @_;
+sub _compile    { _compile_or_execute(1, @_) }
+sub _execute    { _compile_or_execute(0, @_) }
+
+sub _compile_or_execute {
+    my ($do_compile, $perl, $file, $inchash, $dl_shared_objects, $incarray) = @_;
 
     require Module::ScanDeps::DataFeed; 
     # ... so we can find it's full pathname in %INC
 
-    my ($fhout, $feed_file) = File::Temp::tempfile();
+    my ($feed_fh, $feed_file) = File::Temp::tempfile();
     my $dump_file = "$feed_file.out";
 
-    print $fhout <<'...';
-# This will run _after_ all CHECK blocks and _before_ 
-# the first INIT block of the program to compile.
-INIT    
-{
-...
+    print $feed_fh $do_compile ? "INIT {\n" : "END {\n";
+    # NOTE: When compiling the block will run _after_ all CHECK blocks
+    # (but _before_ the first INIT block) and will terminate the program.
+    # When executing the block will run as the first END block and 
+    # the programs continues.
 
     # correctly escape filenames
     require Data::Dumper;
-    print $fhout map { "my $_" } Data::Dumper->Dump(
-                     [ $INC{"Module/ScanDeps/DataFeed.pm"}, $dump_file],
-                     [qw( datafeedpm dump_file )]);
+    print $feed_fh map { "my $_" } Data::Dumper->Dump(
+                       [ $INC{"Module/ScanDeps/DataFeed.pm"}, $dump_file ],
+                       [ qw( datafeedpm dump_file ) ]);
 
-    print $fhout <<'...';
+    print $feed_fh <<'...';
     # localize %INC etc so that the folllowing require doesn't pollute them
     {
         local %INC = %INC;
@@ -1248,47 +1245,27 @@ INIT
     }
 
     Module::ScanDeps::DataFeed::_dump_info($dump_file);
-
-    exit (0);
-}
 ...
+
+    print $feed_fh $do_compile ? "exit(0); }\n" : "}\n";
 
     # append the file to compile
     {
         open my $fhin, "<", $file or die "Couldn't open $file: $!";
-        print $fhout qq[#line 1 "$file"\n], <$fhin>;
+        print $feed_fh qq[#line 1 "$file"\n], <$fhin>;
         close $fhin;
     }
-    close $fhout;
+    close $feed_fh;
 
-    my $rc = system($perl, $feed_file);
+    File::Path::rmtree( ['_Inline'], 0, 1); # XXX hack
+    my $rc = system($perl, (map { "-I$_" } @IncludeLibs), $feed_file);
 
     _extract_info($dump_file, $inchash, $dl_shared_objects, $incarray) if $rc == 0;
     unlink($feed_file, $dump_file);
-    die "SYSTEM ERROR in compiling $file: $rc" unless $rc == 0;
-}
-
-sub _execute {
-    my ($perl, $file, $inchash, $dl_shared_objects, $incarray, $firstflag) = @_;
-
-    $DB::single = $DB::single = 1;
-    my ($fhout, $fname) = File::Temp::tempfile("XXXXXX");
-    $fname = _abs_path($fname);
-    my $fhin  = FileHandle->new($file) or die "Couldn't open $file";
-
-    my $line = do { local $/; <$fhin> };
-    $line =~ s/use Module::ScanDeps::DataFeed.*?\n//sg;
-    $line = "use Module::ScanDeps::DataFeed '$fname.out';\n" . $line;
-    $fhout->print($line);
-    $fhout->close;
-    $fhin->close;
-
-    File::Path::rmtree( ['_Inline'], 0, 1); # XXX hack
-    my $rc = system($perl, (map { "-I$_" } @IncludeLibs), $fname);
-
-    _extract_info("$fname.out", $inchash, $dl_shared_objects, $incarray) if $rc == 0;
-    unlink("$fname", "$fname.out");
-    die "SYSTEM ERROR in executing $file: $rc" unless $rc == 0;
+    die $do_compile
+            ? "SYSTEM ERROR in compiling $file: $rc" 
+            : "SYSTEM ERROR in executing $file: $rc" 
+            unless $rc == 0;
 }
 
 # create a new hashref, applying fixups

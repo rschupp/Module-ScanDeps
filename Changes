@@ -1,3 +1,7 @@
+[Changes for 1.04 - 2011-07-21]
+* Brown paper bag bug: fix option -x (execute) (broken by changes for -c)
+* While we're at it: honor option -I with -c
+
 [Changes for 1.03 - 2011-07-18]
 
 * RT #69213: ScanDeps incompatible with AnyEvent (Perl 5.14, AnyEvent 5.34, PAR 1.00.2)
