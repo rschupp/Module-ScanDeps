@@ -1,11 +1,7 @@
 package Module::ScanDeps::DataFeed;
 
-
-# NOTE: All require's must be done here and 
-# "require Module::ScanDeps::DataFeed" must be called while %INC, @INC etc
-# are local'ized in order not to pollute these global variables.
-
 use strict; 
+our (%_INC, @_INC, @_dl_shared_objects, @_dl_modules);
 
 require Cwd;
 require DynaLoader;
@@ -13,43 +9,52 @@ require Data::Dumper;
 require B; 
 require Config;
 
-# Write %INC, @INC and @DynaLoader::dl_shared_objects to $filename
-sub _dump_info {
+# Write %_INC, @_INC etc to $filename
+sub _dump_info 
+{
     my ($filename) = @_;
 
-    my %inchash;
-    foreach (keys %INC) {
-        # an unsuccessful require may store undefined values into %INC
-        next unless defined $INC{$_};
-        $inchash{$_} = Cwd::abs_path($INC{$_});
+    while (my ($k, $v) = each %_INC)
+    {
+        # Notes:
+        # (1) An unsuccessful "require" may store an undefined value into %INC.
+        # (2) If a key in %INC was located via a CODE or ARRAY ref or
+        #     blessed object in @INC the corresponding value in %INC contains
+        #     the ref from @INC.
+        if (defined $v && !ref $v)
+        {
+            $_INC{$k} = Cwd::abs_path($v);
+        }
+        else
+        {
+            delete $_INC{$k};
+        }
     }
 
-    my @incarray;
-    # drop (code) refs from @INC
-    @incarray = grep { !ref $_ } @INC;
+    # drop refs from @_INC
+    @_INC = grep { !ref $_ } @_INC;
 
-    my @dl_so = grep { defined $_ && -e $_ } _dl_shared_objects();
-    my $dl_ext = $Config::Config{dlext};
-    my @dl_bs = @dl_so;
-    my @dl_shared_objects = ( @dl_so, grep { s/\Q.$dl_ext\E$/\.bs/ && -e $_ } @dl_bs );
+    my $dlext = $Config::Config{dlext};
+    my @so = grep { defined $_ && -e $_ } _dl_shared_objects();
+    my @bs = @so;
+    my @shared_objects = ( @so, grep { s/\Q.$dlext\E$/\.bs/ && -e $_ } @bs );
 
     open my $fh, ">", $filename 
         or die "Couldn't open $filename: $!\n";
     print $fh Data::Dumper->Dump(
-                  [\%inchash, \@incarray, \@dl_shared_objects], 
+                  [\%_INC, \@_INC, \@shared_objects], 
                   [qw(*inchash *incarray *dl_shared_objects)]);
     print $fh "1;\n";
     close $fh;
 }
 
 sub _dl_shared_objects {
-    if (@DynaLoader::dl_shared_objects) {
-        return @DynaLoader::dl_shared_objects;
+    if (@_dl_shared_objects) {
+        return @_dl_shared_objects;
     }
-    elsif (@DynaLoader::dl_modules) {
-        return map { _dl_mod2filename($_) } @DynaLoader::dl_modules;
+    elsif (@_dl_modules) {
+        return map { _dl_mod2filename($_) } @_dl_modules;
     }
-
     return;
 }
 
@@ -66,7 +71,7 @@ sub _dl_mod2filename {
     my $modfname = $modparts[-1];
     my $modpname = join('/', @modparts);
 
-    foreach my $dir (@INC) {
+    foreach my $dir (@_INC) {
         my $file = "$dir/auto/$modpname/$modfname.$dl_ext";
         return $file if -r $file;
     }

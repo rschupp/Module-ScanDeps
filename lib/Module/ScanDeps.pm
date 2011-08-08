@@ -1234,20 +1234,18 @@ sub _compile_or_execute {
                        [ qw( datafeedpm dump_file ) ]);
 
     print $feed_fh <<'...';
-    # localize %INC etc so that the folllowing require doesn't pollute them
-    {
-        local %INC = %INC;
-        local @INC = @INC;
-        local @DynaLoader::dl_shared_objects = @DynaLoader::dl_shared_objects;
-        local @DynaLoader::dl_modules = @DynaLoader::dl_modules;
+    # save %INC etc so that further requires dont't pollute them
+    %Module::ScanDeps::DataFeed::_INC = %INC;
+    @Module::ScanDeps::DataFeed::_INC = @INC;
+    @Module::ScanDeps::DataFeed::_dl_shared_objects = @DynaLoader::dl_shared_objects;
+    @Module::ScanDeps::DataFeed::_dl_modules = @DynaLoader::dl_modules;
 
         require $datafeedpm;
-    }
 
     Module::ScanDeps::DataFeed::_dump_info($dump_file);
 ...
 
-    print $feed_fh $do_compile ? "exit(0); }\n" : "}\n";
+    print $feed_fh $do_compile ? "exit(0);\n}\n" : "}\n";
 
     # append the file to compile
     {
