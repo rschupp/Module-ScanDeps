@@ -359,6 +359,7 @@ my %Preload;
     'Net/FTP.pm'                    => 'sub',
     'Net/Server.pm'                 => 'sub',
     'Net/SSH/Perl.pm'               => 'sub',
+    'Package/Stash.pm'              => [ qw{Package/Stash/PP.pm Package/Stash/XS.pm} ],
     'PAR/Repository.pm'             => 'sub',
     'PAR/Repository/Client.pm'      => 'sub',
     'Perl/Critic.pm'                => 'sub', #not only Perl/Critic/Policy

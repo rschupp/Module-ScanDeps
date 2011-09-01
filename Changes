@@ -1,3 +1,5 @@
+* Special case for Package::Stash (Alexandr Ciornii)
+
 [Changes for 1.04 - 2011-07-21]
 * Brown paper bag bug: fix option -x (execute) (broken by changes for -c)
 * While we're at it: honor option -I with -c
