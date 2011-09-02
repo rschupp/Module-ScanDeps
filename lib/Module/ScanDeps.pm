@@ -355,6 +355,7 @@ my %Preload;
         _glob_in_inc('$CurrentPackage/Plugin', 1);
     },
     'MIME/Decoder.pm'               => 'sub',
+    'Moose.pm'                      => [ qw{Moose/Meta/Object/Trait.pm} ],
     'Net/DNS/RR.pm'                 => 'sub',
     'Net/FTP.pm'                    => 'sub',
     'Net/Server.pm'                 => 'sub',
