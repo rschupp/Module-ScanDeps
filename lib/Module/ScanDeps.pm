@@ -355,12 +355,16 @@ my %Preload;
         _glob_in_inc('$CurrentPackage/Plugin', 1);
     },
     'MIME/Decoder.pm'               => 'sub',
-    'Moose.pm'                      => [ qw{Moose/Meta/Object/Trait.pm} ],
+    'Moose.pm'                      => [qw( Moose/Meta/Object/Trait.pm )],
+    'MozRepl.pm'                    => sub {
+        qw( MozRepl/Log.pm MozRepl/Client.pm Module/Pluggable/Fast.pm ),
+        _glob_in_inc('MozRepl/Plugin', 1);
+    },
     'Net/DNS/RR.pm'                 => 'sub',
     'Net/FTP.pm'                    => 'sub',
     'Net/Server.pm'                 => 'sub',
     'Net/SSH/Perl.pm'               => 'sub',
-    'Package/Stash.pm'              => [ qw{Package/Stash/PP.pm Package/Stash/XS.pm} ],
+    'Package/Stash.pm'              => [qw( Package/Stash/PP.pm Package/Stash/XS.pm )],
     'PAR/Repository.pm'             => 'sub',
     'PAR/Repository/Client.pm'      => 'sub',
     'Perl/Critic.pm'                => 'sub', #not only Perl/Critic/Policy
