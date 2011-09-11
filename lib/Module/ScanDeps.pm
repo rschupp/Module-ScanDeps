@@ -275,6 +275,7 @@ my %Preload;
                 _glob_in_inc('Date/Manip/Offset', 1));
     },
     'DateTime/Locale.pm' => 'sub',
+    'DateTime/TimeZone.pm' => 'sub',
     'DBI.pm' => sub {
         grep !/\bProxy\b/, _glob_in_inc('DBD', 1);
     },
@@ -355,10 +356,18 @@ my %Preload;
         _glob_in_inc('$CurrentPackage/Plugin', 1);
     },
     'MIME/Decoder.pm'               => 'sub',
-    'Moose.pm'                      => [qw( Moose/Meta/Object/Trait.pm )],
+    'Moose.pm'                      => sub {
+        _glob_in_inc('Moose', 1),
+        _glob_in_inc('Class/MOP', 1),
+    },
+    'MooseX/AttributeHelpers.pm'    => 'sub',
+    'MooseX/POE.pm'                 => sub {
+        _glob_in_inc('MooseX/POE', 1),
+        _glob_in_inc('MooseX/Async', 1),
+    },
     'MozRepl.pm'                    => sub {
         qw( MozRepl/Log.pm MozRepl/Client.pm Module/Pluggable/Fast.pm ),
-        _glob_in_inc('MozRepl/Plugin', 1);
+        _glob_in_inc('MozRepl/Plugin', 1),
     },
     'Net/DNS/RR.pm'                 => 'sub',
     'Net/FTP.pm'                    => 'sub',
@@ -367,15 +376,20 @@ my %Preload;
     'Package/Stash.pm'              => [qw( Package/Stash/PP.pm Package/Stash/XS.pm )],
     'PAR/Repository.pm'             => 'sub',
     'PAR/Repository/Client.pm'      => 'sub',
+    'Parse/AFP.pm'                  => 'sub',
+    'Parse/Binary.pm'               => 'sub',
     'Perl/Critic.pm'                => 'sub', #not only Perl/Critic/Policy
+    'PerlIO.pm'                     => [ 'PerlIO/scalar.pm' ],
     'PDF/API2/Resource/Font.pm'     => 'sub',
     'PDF/API2/Basic/TTF/Font.pm'    => sub {
         _glob_in_inc('PDF/API2/Basic/TTF', 1);
     },
     'PDF/Writer.pm'                 => 'sub',
-    'POE.pm'                           => [ qw(
-        POE/Kernel.pm POE/Session.pm
-    ) ],
+    'POE.pm'                        => [qw( POE/Kernel.pm POE/Session.pm )],
+    'POE/Component/Client/HTTP.pm'  => sub {
+        _glob_in_inc('POE/Component/Client/HTTP', 1),
+        qw( POE/Filter/HTTPChunk.pm POE/Filter/HTTPHead.pm ),
+    },
     'POE/Kernel.pm'                    => sub {
         _glob_in_inc('POE/XS/Resource', 1),
         _glob_in_inc('POE/Resource', 1),
@@ -388,9 +402,6 @@ my %Preload;
             } qw( SigAction SigRt )
     },
     'PPI.pm'                        => 'sub',
-    'Parse/AFP.pm'                  => 'sub',
-    'Parse/Binary.pm'               => 'sub',
-    'PerlIO.pm'                     => [ 'PerlIO/scalar.pm' ],
     'Regexp/Common.pm'              => 'sub',
     'RPC/XML/ParserFactory.pm'      => sub {
         _glob_in_inc('RPC/XML/Parser', 1);
@@ -399,8 +410,11 @@ my %Preload;
         termios.ph asm/termios.ph sys/termiox.ph sys/termios.ph sys/ttycom.ph
     ) ],
     'SOAP/Lite.pm'                  => sub {
-        (($] >= 5.008 ? ('utf8.pm') : ()), _glob_in_inc('SOAP/Transport', 1));
+        ($] >= 5.008 ? ('utf8.pm') : ()), 
+        _glob_in_inc('SOAP/Transport', 1),
+        _glob_in_inc('SOAP/Lite/Deserializer', 1),
     },
+    'Socket/GetAddrInfo.pm'         => 'sub',
     'SQL/Parser.pm' => sub {
         _glob_in_inc('SQL/Dialects', 1);
     },
