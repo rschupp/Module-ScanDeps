@@ -1,7 +1,7 @@
 package Module::ScanDeps::DataFeed;
 
 use strict; 
-our (%_INC, @_INC, @_dl_shared_objects, @_dl_modules);
+use vars qw( %_INC @_INC @_dl_shared_objects @_dl_modules $_0 );
 
 require Cwd;
 require DynaLoader;

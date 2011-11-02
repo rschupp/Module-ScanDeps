@@ -1241,14 +1241,23 @@ sub _compile_or_execute {
     my ($feed_fh, $feed_file) = File::Temp::tempfile();
     my $dump_file = "$feed_file.out";
 
+    require Data::Dumper;
+
+    # spoof $0 (to $file) so that FindBin works as expected
+    # NOTE: We don't directly assign to $0 as it has magic (i.e.
+    # assigning has side effects and may actually fail, cf. perlvar(1)).
+    # Instead we alias *0 to a package variable holding the correct value.
+    print $feed_fh "BEGIN { ", 
+                   Data::Dumper->Dump([ $file ], [ "Module::ScanDeps::DataFeed::_0" ]),
+                   "*0 = \\\$Module::ScanDeps::DataFeed::_0; }\n";
+
     print $feed_fh $do_compile ? "INIT {\n" : "END {\n";
     # NOTE: When compiling the block will run _after_ all CHECK blocks
     # (but _before_ the first INIT block) and will terminate the program.
     # When executing the block will run as the first END block and 
     # the programs continues.
 
-    # correctly escape filenames
-    require Data::Dumper;
+    # correctly escape strings containing filenames
     print $feed_fh map { "my $_" } Data::Dumper->Dump(
                        [ $INC{"Module/ScanDeps/DataFeed.pm"}, $dump_file ],
                        [ qw( datafeedpm dump_file ) ]);
