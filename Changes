@@ -1,3 +1,11 @@
+[Changes for 1.05 - 2011-11-02]
+* RT #72082: $FindBin::Bin issue on Moudel::ScanDeps 1.04
+  Make FindBin work (at least with option -c or -x) by spoofing $0 
+  in the temp script generated for M:SD::DataFeed
+* RT #70134: patch suggestions for Module::ScanDeps 1.04: additional preload
+  rules, used_via_preload attribute
+  Add suggested %Preload rules from the attached patch (thanks, Markus Jansen)
+* Add %Preload rules for MozRepl
 * Special case for Package::Stash (Alexandr Ciornii)
 * Special case for Moose (Alexandr Ciornii)
 
