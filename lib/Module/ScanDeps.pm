@@ -790,13 +790,15 @@ sub scan_line {
     $line =~ s/[\\\/]+/\//g;
 
     foreach (split(/;/, $line)) {
-        if (/^\s*package\s+(\w+)/) {
+        s/^\s*//;
+
+        if (/^package\s+(\w+)/) {
             $CurrentPackage = $1;
             $CurrentPackage =~ s{::}{/}g;
             return;
         }
         # use VERSION:
-        if (/^\s*(?:use|require)\s+v?(\d[\d\._]*)/) {
+        if (/^(?:use|require)\s+v?(\d[\d\._]*)/) {
           # include feature.pm if we have 5.9.5 or better
           if (version->new($1) >= version->new("5.9.5")) {
               # seems to catch 5.9, too (but not 5.9.4)
@@ -804,14 +806,14 @@ sub scan_line {
           }
         }
 
-        if (my ($autouse) = /^\s*use\s+autouse\s+(["'].*?["']|\w+)/)
+        if (my ($autouse) = /^use \s+ autouse \s+ (["'].*?["']|\w+)/x)
         {
             $autouse =~ s/["']//g;
             $autouse =~ s{::}{/}g;
             return ("autouse.pm", "$autouse.pm");
         }
 
-        if (my ($how, $libs) = /\b(use\s+lib\s+|(?:unshift|push)\s+\@INC\s+,)(.+)/)
+        if (my ($how, $libs) = /^(use \s+ lib \s+ | (?:unshift|push) \s+ \@INC \s+ ,) (.+)/x)
         {
             my $archname = defined($Config{archname}) ? $Config{archname} : '';
             my $ver = defined($Config{version}) ? $Config{version} : '';
@@ -871,6 +873,7 @@ sub scan_chunk {
     # Module name extraction heuristics {{{
     my $module = eval {
         $_ = $chunk;
+        s/^\s*//;
 
         # TODO: There's many more of these "loader" type modules on CPAN!
         # scan for the typical module-loader modules
@@ -891,17 +894,17 @@ sub scan_chunk {
         return [ 'Class/Autouse.pm',
             map { s{::}{/}g; "$_.pm" }
               grep { length and !/^:|^q[qw]?$/ } split(/[^\w:]+/, $1) ]
-          if /^\s* use \s+ Class::Autouse \b \s* (.*)/sx
-              or /^\s* Class::Autouse \s* -> \s* autouse \s* (.*)/sx;
+          if /^use \s+ Class::Autouse \b \s* (.*)/sx
+              or /^Class::Autouse \s* -> \s* autouse \s* (.*)/sx;
 
-        return $1 if /(?:^|\s)(?:use|no|require)\s+([\w:\.\-\\\/\"\']+)/;
+        return $1 if /^(?:use|no|require) \s+ ([\w:\.\-\\\/\"\']+)/x;
         return $1
-          if /(?:^|\s)(?:use|no|require)\s+\(\s*([\w:\.\-\\\/\"\']+)\s*\)/;
+          if /^(?:use|no|require) \s+ \( \s* ([\w:\.\-\\\/\"\']+) \s* \)/x;
 
-        if (   s/(?:^|\s)eval\s+\"([^\"]+)\"/$1/
-            or s/(?:^|\s)eval\s*\(\s*\"([^\"]+)\"\s*\)/$1/)
+        if (   s/^eval\s+\"([^\"]+)\"/$1/
+            or s/^eval\s*\(\s*\"([^\"]+)\"\s*\)/$1/)
         {
-            return $1 if /(?:^|\s)(?:use|no|require)\s+([\w:\.\-\\\/\"\']*)/;
+            return $1 if /^\s* (?:use|no|require) \s+ ([\w:\.\-\\\/\"\']*)/x;
         }
 
         if (/(<[^>]*[^\$\w>][^>]*>)/) {
@@ -914,8 +917,8 @@ sub scan_chunk {
             return [ 'PerlIO.pm', $mod ] if $1 and $mod;
             return $mod if $mod;
         }
-        return $1 if /(?:^|\s)(?:do|require)\s+[^"]*"(.*?)"/;
-        return $1 if /(?:^|\s)(?:do|require)\s+[^']*'(.*?)'/;
+        return $1 if /^(?:do|require)\s+[^"]*"(.*?)"/;
+        return $1 if /^(?:do|require)\s+[^']*'(.*?)'/;
         return $1 if /[^\$]\b([\w:]+)->\w/ and $1 ne 'Tk' and $1 ne 'shift';
         return $1 if /\b(\w[\w:]*)::\w+\(/ and $1 ne 'main' and $1 ne 'SUPER';
 
