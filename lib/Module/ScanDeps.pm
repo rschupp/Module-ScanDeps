@@ -1,5 +1,5 @@
 package Module::ScanDeps;
-use 5.006;
+use 5.008001;
 use strict;
 use warnings;
 use vars qw( $VERSION @EXPORT @EXPORT_OK @ISA $CurrentPackage @IncludeLibs $ScanFileRE );
