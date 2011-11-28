@@ -1,3 +1,16 @@
+[Changes for 1.06 - 2011-11-28]
+* RT #72211: pp includes way too much modules (when using 'use strict;')?
+  Rework regexes to detect "use MODULE ...": 
+  the following line from unicore/mktables 
+
+    my $unihan = 'Unihan properties are by default not enabled in the Perl core.  Instead use CPAN: Unicode::Unihan';
+
+  would erroneously detect a dependency on CPAN.pm (which will in turn
+  pull in a lot of modules)
+* Bump Perl version requirement to 5.8.1 (Schwern: The End Of 5.6 Is Nigh!)
+* Rewrite t/7-check-dynaloader.t to look for more candidates of dynamic modules
+  that might be used as test cases
+
 [Changes for 1.05 - 2011-11-02]
 * RT #72082: $FindBin::Bin issue on Moudel::ScanDeps 1.04
   Make FindBin work (at least with option -c or -x) by spoofing $0 
