@@ -1,3 +1,9 @@
+[Changes for 1.07 - 2011-11-29]
+* RT #72796: dynaloader test fails when the .so files are in the 
+  system lib dirs and local::lib is involved?
+  Relax a check in t/7-check-dynaloader.t
+* Update Module::Install to 1.04
+ 
 [Changes for 1.06 - 2011-11-28]
 * RT #72211: pp includes way too much modules (when using 'use strict;')?
   Rework regexes to detect "use MODULE ...": 
