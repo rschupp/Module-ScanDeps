@@ -913,9 +913,10 @@ sub scan_chunk {
         }
         return "DBD/$1.pm"    if /\b[Dd][Bb][Ii]:(\w+):/;
         if (/(?:(:encoding)|\b(?:en|de)code)\(\s*['"]?([-\w]+)/) {
-            my $mod = _find_encoding($2);
-            return [ 'PerlIO.pm', $mod ] if $1 and $mod;
-            return $mod if $mod;
+            my @mods = ( 'Encoding.pm' );       # always needed
+            push @mods, 'PerlIO.pm' if $1;      # needed for ":encoding(...)"
+            push @mods, $mod if $mod;           # "external" Encode module
+            return \@mods;
         }
         return $1 if /^(?:do|require)\s+[^"]*"(.*?)"/;
         return $1 if /^(?:do|require)\s+[^']*'(.*?)'/;
