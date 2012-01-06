@@ -913,6 +913,7 @@ sub scan_chunk {
         }
         return "DBD/$1.pm"    if /\b[Dd][Bb][Ii]:(\w+):/;
         if (/(?:(:encoding)|\b(?:en|de)code)\(\s*['"]?([-\w]+)/) {
+            my $mod = _find_encoding($2);
             my @mods = ( 'Encoding.pm' );       # always needed
             push @mods, 'PerlIO.pm' if $1;      # needed for ":encoding(...)"
             push @mods, $mod if $mod;           # "external" Encode module
@@ -1248,14 +1249,14 @@ sub _compile_or_execute {
     # NOTE: We don't directly assign to $0 as it has magic (i.e.
     # assigning has side effects and may actually fail, cf. perlvar(1)).
     # Instead we alias *0 to a package variable holding the correct value.
-    print $feed_fh "BEGIN { ", 
+    print $feed_fh "BEGIN {\n", 
                    Data::Dumper->Dump([ $file ], [ "Module::ScanDeps::DataFeed::_0" ]),
-                   "*0 = \\\$Module::ScanDeps::DataFeed::_0; }\n";
+                   "*0 = \\\$Module::ScanDeps::DataFeed::_0;\n",
+                   "}\n";
 
-    print $feed_fh $compile ? "INIT {\n" : "END {\n";
-    # NOTE: When compiling the block will run _after_ all CHECK blocks
-    # (but _before_ the first INIT block) and will terminate the program.
-    # When executing the block will run as the first END block and 
+    print $feed_fh $compile ? "CHECK {\n" : "END {\n";
+    # NOTE: When compiling the block will run as the last CHECK block;
+    # when executing the block will run as the first END block and 
     # the programs continues.
 
     # correctly escape strings containing filenames
@@ -1263,19 +1264,18 @@ sub _compile_or_execute {
                        [ $INC{"Module/ScanDeps/DataFeed.pm"}, $dump_file ],
                        [ qw( datafeedpm dump_file ) ]);
 
-    print $feed_fh <<'...';
     # save %INC etc so that further requires dont't pollute them
+    print $feed_fh <<'...';
     %Module::ScanDeps::DataFeed::_INC = %INC;
     @Module::ScanDeps::DataFeed::_INC = @INC;
     @Module::ScanDeps::DataFeed::_dl_shared_objects = @DynaLoader::dl_shared_objects;
     @Module::ScanDeps::DataFeed::_dl_modules = @DynaLoader::dl_modules;
 
-        require $datafeedpm;
+    require $datafeedpm;
 
     Module::ScanDeps::DataFeed::_dump_info($dump_file);
+}
 ...
-
-    print $feed_fh $compile ? "exit(0);\n}\n" : "}\n";
 
     # append the file to compile
     {
@@ -1286,14 +1286,19 @@ sub _compile_or_execute {
     close $feed_fh;
 
     File::Path::rmtree( ['_Inline'], 0, 1); # XXX hack
-    my $rc = system($perl, (map { "-I$_" } @IncludeLibs), $feed_file);
+    
+    my @cmd = ($perl);
+    push @cmd, "-c" if $compile;
+    push @cmd, map { "-I$_" } @IncludeLibs;
+    my $rc = system(@cmd, $feed_file);
 
-    _extract_info($dump_file, $inchash, $dl_shared_objects, $incarray) if $rc == 0;
+    _extract_info($dump_file, $inchash, $dl_shared_objects, $incarray) 
+        if $rc == 0;
     unlink($feed_file, $dump_file);
     die $compile
-            ? "SYSTEM ERROR in compiling $file: $rc" 
-            : "SYSTEM ERROR in executing $file: $rc" 
-            unless $rc == 0;
+        ? "SYSTEM ERROR in compiling $file: $rc" 
+        : "SYSTEM ERROR in executing $file: $rc" 
+        unless $rc == 0;
 }
 
 # create a new hashref, applying fixups
