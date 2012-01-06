@@ -719,7 +719,7 @@ sub scan_deps_runtime {
             next unless $file =~ $ScanFileRE;
 
             ($inchash, $dl_shared_objects, $incarray) = ({}, [], []);
-            _compile($perl, $file, $inchash, $dl_shared_objects, $incarray);
+            _compile_or_execute($compile, $perl, $file, $inchash, $dl_shared_objects, $incarray);
 
             my $rv_sub = _make_rv($inchash, $dl_shared_objects, $incarray);
             _merge_rv($rv_sub, $rv);
@@ -730,7 +730,7 @@ sub scan_deps_runtime {
         my $exc;
         foreach $exc (@$excarray) {
             ($inchash, $dl_shared_objects, $incarray) = ({}, [], []);
-            _execute($perl, $exc, $inchash, $dl_shared_objects, $incarray);
+            _compile_or_execute($compile, $perl, $exc, $inchash, $dl_shared_objects, $incarray);
         }
 
         # XXX only retains data from last execute ...  Why? I suspect
@@ -1233,11 +1233,8 @@ sub get_files {
 
 # scan_deps_runtime utility functions
 
-sub _compile    { _compile_or_execute(1, @_) }
-sub _execute    { _compile_or_execute(0, @_) }
-
 sub _compile_or_execute {
-    my ($do_compile, $perl, $file, $inchash, $dl_shared_objects, $incarray) = @_;
+    my ($compile, $perl, $file, $inchash, $dl_shared_objects, $incarray) = @_;
 
     require Module::ScanDeps::DataFeed; 
     # ... so we can find it's full pathname in %INC
@@ -1255,7 +1252,7 @@ sub _compile_or_execute {
                    Data::Dumper->Dump([ $file ], [ "Module::ScanDeps::DataFeed::_0" ]),
                    "*0 = \\\$Module::ScanDeps::DataFeed::_0; }\n";
 
-    print $feed_fh $do_compile ? "INIT {\n" : "END {\n";
+    print $feed_fh $compile ? "INIT {\n" : "END {\n";
     # NOTE: When compiling the block will run _after_ all CHECK blocks
     # (but _before_ the first INIT block) and will terminate the program.
     # When executing the block will run as the first END block and 
@@ -1278,7 +1275,7 @@ sub _compile_or_execute {
     Module::ScanDeps::DataFeed::_dump_info($dump_file);
 ...
 
-    print $feed_fh $do_compile ? "exit(0);\n}\n" : "}\n";
+    print $feed_fh $compile ? "exit(0);\n}\n" : "}\n";
 
     # append the file to compile
     {
@@ -1293,7 +1290,7 @@ sub _compile_or_execute {
 
     _extract_info($dump_file, $inchash, $dl_shared_objects, $incarray) if $rc == 0;
     unlink($feed_file, $dump_file);
-    die $do_compile
+    die $compile
             ? "SYSTEM ERROR in compiling $file: $rc" 
             : "SYSTEM ERROR in executing $file: $rc" 
             unless $rc == 0;
