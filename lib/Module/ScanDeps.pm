@@ -326,12 +326,10 @@ my %Preload;
     'Log/Any.pm' => 'sub',
     'Log/Report/Dispatcher.pm' => 'sub',
     'LWP/UserAgent.pm' => sub {
-        return(
-            qw(
-            URI/URL.pm          URI/http.pm         LWP/Protocol/http.pm
-            ),
-            _glob_in_inc("LWP/Authen", 1),
-            _glob_in_inc("LWP/Protocol", 1),
+        return( 
+          qw( URI/URL.pm URI/http.pm LWP/Protocol/http.pm ),
+          _glob_in_inc("LWP/Authen", 1),
+          _glob_in_inc("LWP/Protocol", 1),
         );
     },
     'LWP/Parallel.pm' => sub {
@@ -397,9 +395,8 @@ my %Preload;
         _glob_in_inc('POE/Loop', 1),
     },
     'POSIX.pm'                      => sub {
-        map { my $sigmod = $_;
-              map "auto/POSIX/$sigmod/$_->{name}", _glob_in_inc("auto/POSIX/$sigmod");
-            } qw( SigAction SigRt )
+        _glob_in_inc('auto/POSIX/SigAction', 0),        # *.al files
+        _glob_in_inc('auto/POSIX/SigRt', 0),            # *.al files
     },
     'PPI.pm'                        => 'sub',
     'Regexp/Common.pm'              => 'sub',
@@ -426,7 +423,7 @@ my %Preload;
     },
     'SVN/Core.pm' => sub {
         _glob_in_inc('SVN', 1),
-        map "auto/SVN/$_->{name}", _glob_in_inc('auto/SVN'),
+        _glob_in_inc('auto/SVN', 0),                    # *.so, *.bs files
     },
     'Template.pm'      => 'sub',
     'Term/ReadLine.pm' => 'sub',
@@ -447,7 +444,7 @@ my %Preload;
     'Unicode/UCD.pm'    => sub {
         # add data files (cf. sub openunicode in Unicode::UCD)
         'unicore/version',
-        grep /\.txt$/, map "unicore/$_->{name}", _glob_in_inc('unicore', 0);
+        grep /\.txt$/, _glob_in_inc('unicore', 0);
     },
     'URI.pm'            => sub {
         grep !/urn/, _glob_in_inc('URI', 1);
@@ -506,7 +503,7 @@ my %Preload;
     'utf8.pm' => sub {
         # Perl 5.6.x: "unicode", Perl 5.8.x and up: "unicore"
         my $unicore = _find_in_inc('unicore/Name.pl') ? 'unicore' : 'unicode';
-        return ('utf8_heavy.pl', map "$unicore/$_->{name}", _glob_in_inc($unicore));
+        return ('utf8_heavy.pl', _glob_in_inc($unicore));
     },
     'charnames.pm' => sub {
         _find_in_inc('unicore/Name.pl') ? 'unicore/Name.pl' : 'unicode/Name.pl'
@@ -1055,7 +1052,7 @@ sub add_deps {
 
             foreach (_glob_in_inc("auto/$path")) {
                 next if $_->{file} =~ m{\bauto/$path/.*/};  # weed out subdirs
-                next if $_->{name} =~ m/(?:^|\/)\.(?:exists|packlist)$/;
+                next if $_->{name} =~ m{/\.(?:exists|packlist)$};
                 my ($ext,$type);
                 $ext = lc($1) if $_->{name} =~ /(\.[^.]+)$/;
                 if (defined $ext) {
@@ -1065,7 +1062,7 @@ sub add_deps {
                 }
                 $type ||= 'data';
 
-                _add_info( rv     => $rv,        module  => "auto/$path/$_->{name}",
+                _add_info( rv     => $rv,        module  => $_->{name},
                            file   => $_->{file}, used_by => $module,
                            type   => $type );
             }
@@ -1077,12 +1074,12 @@ sub add_deps {
             # TODO: get real distribution name related to module name
             my $distname = $modname;
             foreach (_glob_in_inc("auto/share/module/$modname")) {
-                _add_info( rv     => $rv,        module  => "auto/share/module/$modname/$_->{name}",
+                _add_info( rv     => $rv,        module  => $_->{name},
                            file   => $_->{file}, used_by => $module,
                            type   => 'data' );
             }
             foreach (_glob_in_inc("auto/share/dist/$distname")) {
-                _add_info( rv     => $rv,        module  => "auto/share/dist/$distname/$_->{name}",
+                _add_info( rv     => $rv,        module  => $_->{name},
                            file   => $_->{file}, used_by => $module,
                            type   => 'data' );
             }
@@ -1114,19 +1111,17 @@ sub _glob_in_inc {
 
     $subdir =~ s/\$CurrentPackage/$CurrentPackage/;
 
-    foreach my $dir (map "$_/$subdir", grep !/\bBSDPAN\b/, @INC, @IncludeLibs) {
+    foreach my $inc (grep !/\bBSDPAN\b/, @INC, @IncludeLibs) {
+        my $dir = "$inc/$subdir";
         next unless -d $dir;
         File::Find::find(
             sub {
-                my $name = $File::Find::name;
-                $name =~ s!^\Q$dir\E/!!;
-                return if $pm_only and lc($name) !~ /\.p[mh]$/i;
+                return unless -f;
+                return if $pm_only and !/\.p[mh]$/i;
+                (my $name = $File::Find::name) =~ s!^\Q$inc\E/!!;
                 push @files, $pm_only
-                  ? "$subdir/$name"
-                  : {             file => $File::Find::name,
-                    name => $name,
-                  }
-                  if -f;
+                  ? $name
+                  : { file => $File::Find::name, name => $name };
             },
             $dir
         );
