@@ -288,7 +288,7 @@ my %Preload;
         termios.ph asm/termios.ph sys/termiox.ph sys/termios.ph sys/ttycom.ph
     ) ],
     'Email/Send.pm' => 'sub',
-    'Event.pm' => [ map {"Event/$_.pm" } qw(idle io signal timer var)],
+    'Event.pm' => [ map "Event/$_.pm", qw(idle io signal timer var)],
     'ExtUtils/MakeMaker.pm' => sub {
         grep /\bMM_/, _glob_in_inc('ExtUtils', 1);
     },
@@ -302,14 +302,16 @@ my %Preload;
         URI/URL.pm          URI.pm
     ) ],
     'Image/ExifTool.pm' => sub {
-        return( _glob_in_inc("Image/ExifTool", 1), qw(
-            File/RandomAccess.pm
-        ));
+        return(
+          (map $_->{name}, _glob_in_inc('Image/ExifTool', 0)), # also *.pl files
+          qw( File/RandomAccess.pm ),
+        );
     },
     'Image/Info.pm' => sub {
-        return( _glob_in_inc("Image/Info", 1), qw(
-            Image/TIFF.pm
-        ));
+        return(
+          _glob_in_inc('Image/Info', 1),
+          qw( Image/TIFF.pm ),
+        );
     },
     'IO.pm' => [ qw(
         IO/Handle.pm        IO/Seekable.pm      IO/File.pm
@@ -395,8 +397,9 @@ my %Preload;
         _glob_in_inc('POE/Loop', 1),
     },
     'POSIX.pm'                      => sub {
-        _glob_in_inc('auto/POSIX/SigAction', 0),        # *.al files
-        _glob_in_inc('auto/POSIX/SigRt', 0),            # *.al files
+        map $_->{name},
+          _glob_in_inc('auto/POSIX/SigAction', 0),      # *.al files
+          _glob_in_inc('auto/POSIX/SigRt', 0),          # *.al files
     },
     'PPI.pm'                        => 'sub',
     'Regexp/Common.pm'              => 'sub',
@@ -423,7 +426,7 @@ my %Preload;
     },
     'SVN/Core.pm' => sub {
         _glob_in_inc('SVN', 1),
-        _glob_in_inc('auto/SVN', 0),                    # *.so, *.bs files
+        map $_->{name}, _glob_in_inc('auto/SVN', 0),    # *.so, *.bs files
     },
     'Template.pm'      => 'sub',
     'Term/ReadLine.pm' => 'sub',
@@ -444,7 +447,7 @@ my %Preload;
     'Unicode/UCD.pm'    => sub {
         # add data files (cf. sub openunicode in Unicode::UCD)
         'unicore/version',
-        grep /\.txt$/, _glob_in_inc('unicore', 0);
+        grep /\.txt$/, map $_->{name}, _glob_in_inc('unicore', 0);
     },
     'URI.pm'            => sub {
         grep !/urn/, _glob_in_inc('URI', 1);
@@ -503,7 +506,7 @@ my %Preload;
     'utf8.pm' => sub {
         # Perl 5.6.x: "unicode", Perl 5.8.x and up: "unicore"
         my $unicore = _find_in_inc('unicore/Name.pl') ? 'unicore' : 'unicode';
-        return ('utf8_heavy.pl', _glob_in_inc($unicore));
+        return ('utf8_heavy.pl', map $_->{name}, _glob_in_inc($unicore, 0));
     },
     'charnames.pm' => sub {
         _find_in_inc('unicore/Name.pl') ? 'unicore/Name.pl' : 'unicode/Name.pl'
