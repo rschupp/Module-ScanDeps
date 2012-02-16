@@ -298,6 +298,7 @@ my %Preload;
         require File::Spec;
         map { my $name = $_; $name =~ s!::!/!g; "$name.pm" } @File::Spec::ISA;
     },
+    'Gtk2.pm' => [qw( Cairo.pm )], # Gtk2.pm does: eval "use Cairo;"
     'HTTP/Message.pm' => [ qw(
         URI/URL.pm          URI.pm
     ) ],
@@ -374,6 +375,7 @@ my %Preload;
     'Net/Server.pm'                 => 'sub',
     'Net/SSH/Perl.pm'               => 'sub',
     'Package/Stash.pm'              => [qw( Package/Stash/PP.pm Package/Stash/XS.pm )],
+    'Pango.pm'                      => [qw( Cairo.pm )], # Pango.pm does: eval "use Cairo;"
     'PAR/Repository.pm'             => 'sub',
     'PAR/Repository/Client.pm'      => 'sub',
     'Parse/AFP.pm'                  => 'sub',
@@ -390,7 +392,7 @@ my %Preload;
         _glob_in_inc('POE/Component/Client/HTTP', 1),
         qw( POE/Filter/HTTPChunk.pm POE/Filter/HTTPHead.pm ),
     },
-    'POE/Kernel.pm'                    => sub {
+    'POE/Kernel.pm'                 => sub {
         _glob_in_inc('POE/XS/Resource', 1),
         _glob_in_inc('POE/Resource', 1),
         _glob_in_inc('POE/XS/Loop', 1),
