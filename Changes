@@ -1,3 +1,17 @@
+[Changes for 1.08 - 2012-02-21]
+* RT #73785: scandeps -c fails on modules that depend on Getopt::Euclid
+  - for "scandeps -c ..." switch from an INIT block to a CHECK block
+    and call the augmented script with "perl -c"  instaed of "perl"
+
+* RT#72954 ":encoding(UTF-8)" doesn't imply a dependency on Encode.pm
+  - if scan_chunk sees ":encoding(FOO)" or similar, it goes to some
+    length to find the "external" Encode module to handle FOO; but it
+    forgets that Encode.pm itself is needed at runtime (esp. if FOO
+    is an encoding "internally" handled by Encode.pm, e.g. "UTF-8")
+
+* %Preload: add rules for Gtk2.pm and Pango.pm
+* %Preload: fix a problem with Image::ExifTool 
+
 [Changes for 1.07 - 2011-11-29]
 * RT #72796: dynaloader test fails when the .so files are in the 
   system lib dirs and local::lib is involved?
