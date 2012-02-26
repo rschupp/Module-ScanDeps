@@ -51,7 +51,6 @@ is_deeply(\@array,[sort qw{Catalyst.pm Catalyst/Plugin/ConfigLoader.pm Catalyst/
 my $chunk=<<'EOT';
 use I18N::LangTags 0.30 ();
 EOT
-#-Debug should be skipped
 my @array=sort(scan_chunk($chunk));
 is_deeply(\@array,[sort qw{I18N/LangTags.pm}]);
 }
