@@ -257,6 +257,7 @@ my %Preload;
     'CGI/Application/Plugin/Authentication.pm' => [qw( CGI/Application/Plugin/Authentication/Store/Cookie.pm )],
     'CGI/Application/Plugin/AutoRunmode.pm' => [qw( Attribute/Handlers.pm )],
 
+    'Class/Load.pm' => [qw( Class/Load/PP.pm )],
     'Class/MakeMethods.pm' => 'sub',
     'Class/MethodMaker.pm' => 'sub',
     'Config/Any.pm' =>'sub',

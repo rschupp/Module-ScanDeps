@@ -1,4 +1,5 @@
 * Mojo::Base is a loader (Alexandr Ciornii)
+* Special case for Class::Load (Alexandr Ciornii)
 
 [Changes for 1.08 - 2012-02-21]
 * RT #73785: scandeps -c fails on modules that depend on Getopt::Euclid
