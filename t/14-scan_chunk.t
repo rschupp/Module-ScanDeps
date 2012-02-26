@@ -40,6 +40,14 @@ is_deeply(\@array,[sort qw{parent/doesnotexists.pm}]);
 
 {
 my $chunk=<<'EOT';
+use Mojo::Base 'strict';
+EOT
+my @array=sort(scan_chunk($chunk));
+is_deeply(\@array,[sort qw{Mojo/Base.pm strict.pm}],'Mojo::Base');
+}
+
+{
+my $chunk=<<'EOT';
 use Catalyst qw/-Debug ConfigLoader Session::State::Cookie/
 EOT
 #-Debug should be skipped

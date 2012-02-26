@@ -879,7 +879,7 @@ sub scan_chunk {
 
         # TODO: There's many more of these "loader" type modules on CPAN!
         # scan for the typical module-loader modules
-        my $loaders = "asa base parent prefork POE encoding maybe only::matching";
+        my $loaders = "asa base parent prefork POE encoding maybe only::matching Mojo::Base";
         # grab pre-calculated regexp or re-build it (and cache it)
         my $loader_regexp = $LoaderRegexp{$loaders} || _build_loader_regexp($loaders);
         if ($_ =~ $loader_regexp) { # $1 == loader, $2 == loadee
