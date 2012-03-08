@@ -65,6 +65,7 @@ exit(0);
 
 exit(0);
 
+# NOTE: check_bundle_path runs 2 tests
 sub check_bundle_path {
     my ($module, $auto_path, $suffix, $code, $scan) = @_;
 
@@ -74,7 +75,7 @@ sub check_bundle_path {
 
     my $rv = $scan->($filename);
     my ( $entry ) =  grep { /^\Q$auto_path\E$/ } keys %$rv;
-    ok( $entry, "$module: we have some key that looks like it pulled in its shared lib" );
+    ok( $entry, "$module: found some key that looks like it pulled in its shared lib (auto_path=$auto_path)" );
 
 
     # Look up what %INC knows about Foo::Bar after require'ing it,
@@ -96,7 +97,7 @@ sub check_bundle_path {
     # and ends with $auto_path.
     ok(    $rv->{$entry}->{file} =~ m{^\Q$expected_prefix\E/}
         && $rv->{$entry}->{file} =~ m{/\Q$auto_path\E$}, 
-        'the full bundle path we got looks legit' );
+        "$module: the full bundle path we got ($rv->{$entry}->{file}) looks legit" );
 }
 
 
