@@ -77,27 +77,9 @@ sub check_bundle_path {
     my ( $entry ) =  grep { /^\Q$auto_path\E$/ } keys %$rv;
     ok( $entry, "$module: found some key that looks like it pulled in its shared lib (auto_path=$auto_path)" );
 
-
-    # Look up what %INC knows about Foo::Bar after require'ing it,
-    # then make an educated guess about the location of its shared library.
-    # If the module Foo::Bar was found as /some/path/Foo/Bar.pm, 
-    # assume its shared library is in  /some/path/auto/Foo/Bar/Bar.$dlext
-    # or /some/path/ARCH/auto/Foo/Bar/Bar.$dlext
-    (my $pm = $module.".pm") =~ s,::,/,g;
-    (my $expected_prefix = $INC{$pm}) =~ s,/\Q$pm\E$,,;
-
-    # NOTE: This behaviour is not really guaranteed by the way DynaLoader 
-    # works, but it is a reasonable assumption for any module installed 
-    # by ExtUtils::MakeMaker. But it fails when the module wasn't installed, 
-    # but located via blib (where the pm file is below blib/lib, but the
-    # corresponding shared library is below blib/arch). CPAN Testers does this.
-    $expected_prefix =~ s,blib/lib,blib/arch,;
-
-    # Actually we accept anything that starts with $expected_prefix
-    # and ends with $auto_path.
-    ok(    $rv->{$entry}->{file} =~ m{^\Q$expected_prefix\E/}
-        && $rv->{$entry}->{file} =~ m{/\Q$auto_path\E$}, 
-        "$module: the full bundle path we got ($rv->{$entry}->{file}) looks legit" );
+    # Actually we accept anything that ends with $auto_path.
+    ok($rv->{$entry}->{file} =~ m{/\Q$auto_path\E$}, 
+       "$module: the full bundle path we got ($rv->{$entry}->{file}) looks legit" );
 }
 
 
