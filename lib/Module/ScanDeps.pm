@@ -809,11 +809,12 @@ sub scan_line {
           }
         }
 
-        if (my ($autouse) = /^use \s+ autouse \s+ (["'].*?["']|\w+)/x)
+        if (my ($pragma, $args) = /^use \s+ (autouse|if) \s+ (.+)/x)
         {
-            $autouse =~ s/["']//g;
-            $autouse =~ s{::}{/}g;
-            return ("autouse.pm", "$autouse.pm");
+            my @args = do { no strict; no warnings; eval $args };
+            my $module = $pragma eq "autouse" ? $args[0] : $args[1];
+            $module =~ s{::}{/}g;
+            return ("$pragma.pm", "$module.pm");
         }
 
         if (my ($how, $libs) = /^(use \s+ lib \s+ | (?:unshift|push) \s+ \@INC \s+ ,) (.+)/x)
