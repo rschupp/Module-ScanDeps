@@ -1,3 +1,12 @@
+[Changes for 1.09 - 2012-09-09]
+* teach Module::ScanDeps about "use if ..." constructs
+  - fixes CPAN Testers failures for PAR::Packer with perl 5.17.1 and up
+    (Roderich Schupp)
+
+* RT #79003: t/7-check-dynaloader.t failing when /usr/lib != /usr/lib64
+  - scrap the test for "$entry{file} starts with $expected_prefix" as
+    its assumptions are flawed (Roderich Schupp)
+
 * Mojo::Base is a loader (Alexandr Ciornii)
 * Special case for Class::Load (Alexandr Ciornii)
 
