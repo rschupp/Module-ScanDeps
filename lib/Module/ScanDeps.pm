@@ -380,6 +380,7 @@ my %Preload;
     'Pango.pm'                      => [qw( Cairo.pm )], # Pango.pm does: eval "use Cairo;"
     'PAR/Repository.pm'             => 'sub',
     'PAR/Repository/Client.pm'      => 'sub',
+    'Params/Validate.pm'            => 'sub',
     'Parse/AFP.pm'                  => 'sub',
     'Parse/Binary.pm'               => 'sub',
     'Perl/Critic.pm'                => 'sub', #not only Perl/Critic/Policy
