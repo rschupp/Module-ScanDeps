@@ -1,3 +1,15 @@
+[Changes for 1.10 - 2012-10-20]
+* add %Preload rule for Params::Validate to detect 
+  its PP and XS implementations
+
+* Fix RT #80276 Module DateTime::Format::ISO8601 generates error 
+  after being packaged
+  - caused by failing to pack DateTime::Format::Builder::Parser::XXX modules 
+    needed by DateTime::Format::Builder::Parser
+  - add a corresponding %Preload rule
+
+* update to Module::Install 1.06
+
 [Changes for 1.09 - 2012-09-09]
 * teach Module::ScanDeps about "use if ..." constructs
   - fixes CPAN Testers failures for PAR::Packer with perl 5.17.1 and up
