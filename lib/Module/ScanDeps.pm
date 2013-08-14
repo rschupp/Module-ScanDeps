@@ -473,7 +473,17 @@ my %Preload;
     'XMLRPC/Lite.pm' => sub {
         _glob_in_inc('XMLRPC/Transport', 1),;
     },
-    'YAML.pm' => [qw( YAML/Loader.pm YAML/Dumper.pm )],
+    'YAML.pm'           => [qw( YAML/Loader.pm YAML/Dumper.pm )],
+    'YAML/Any.pm'       => sub { 
+        # try to figure out what YAML::Any would have used
+        my $impl = eval "use YAML::Any; YAML::Any->implementation;";
+        unless ($@) 
+        { 
+            $impl =~ s!::!/!g; 
+            return "$impl.pm"; 
+        }
+        _glob_in_inc('YAML', 1);        # fallback
+    },
     'diagnostics.pm' => sub {
         # shamelessly taken and adapted from diagnostics.pm
         use Config;
