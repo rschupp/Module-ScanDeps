@@ -374,6 +374,7 @@ my %Preload;
     },
     'Net/DNS/RR.pm'                 => 'sub',
     'Net/FTP.pm'                    => 'sub',
+    'Net/HTTPS.pm'                  => [qw( IO/Socket/SSL.pm Net/SSL.pm )],
     'Net/Server.pm'                 => 'sub',
     'Net/SSH/Perl.pm'               => 'sub',
     'Package/Stash.pm'              => [qw( Package/Stash/PP.pm Package/Stash/XS.pm )],
