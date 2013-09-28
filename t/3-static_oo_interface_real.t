@@ -3,16 +3,9 @@
 use strict;
 use warnings;
 
-use Test::More tests => 12;
+use Test::More;
 
 my $rv;
-my $root;
-
-##############################################################
-# Tests compilation of Module::ScanDeps
-##############################################################
-BEGIN { use_ok( 'Module::ScanDeps' ); }
-
 
 ##############################################################
 # Tests static dependency scanning on a real set of modules.
@@ -20,12 +13,23 @@ BEGIN { use_ok( 'Module::ScanDeps' ); }
 # majority of files scanned aren't fixed, the checks are
 # necessarily loose.
 ##############################################################
-$root = $0;
 my @deps = qw(
-    Carp.pm Config.pm	Exporter.pm Test/More.pm
-    base.pm constant.pm	strict.pm   vars.pm
+    Carp.pm 
+    Config.pm	
+    Exporter.pm 
+    Test/More.pm
+    constant.pm	
+    strict.pm
+    vars.pm
     Module/ScanDeps.pm
 );
+plan tests => @deps + 3;
+
+##############################################################
+# Tests compilation of Module::ScanDeps
+##############################################################
+use_ok( 'Module::ScanDeps' );
+
 
 my $obj = Module::ScanDeps->new;
 $obj->set_file($0);
