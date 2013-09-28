@@ -15,8 +15,7 @@ build_requires  'Test::More'                => '0';
 
 install_script  'script/scandeps.pl';
 
-no_index        module  => 'Module::ScanDeps::Cache';
-no_index        module  => 'Module::ScanDeps::DataFeed';
+no_index        package => qw( Module::ScanDeps::Cache 
+                               Module::ScanDeps::DataFeed );
 
-#sign;
 WriteAll;
