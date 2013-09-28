@@ -1,3 +1,15 @@
+[Changes for 1.11 - 2013-09-28]
+* Fix RT #89000: test broken by indirect base.pm disuse
+  - delete base.pm from list of expected deps, 
+    patch by Andrew Main (zefram@fysh.org)
+
+* new %Preload rule for Net::HTTPS (e.g. used by LWP::Protocol::https)
+  - look for IO::Socket::SSL or Net::SSL
+
+* new %Preload rule for YAML::Any
+  - try to figure out what YAML::Any would have used (using YAML::Any->implementation)
+  - as fallback, include anything below YAML
+
 [Changes for 1.10 - 2012-10-20]
 * add %Preload rule for Params::Validate to detect 
   its PP and XS implementations
