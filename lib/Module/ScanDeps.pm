@@ -200,7 +200,7 @@ C<$Module::ScanDeps::ScanFileRE = qr/./>
 
 =head1 CAVEATS
 
-This module intentially ignores the B<BSDPAN> hack on FreeBSD -- the
+This module intentionally ignores the B<BSDPAN> hack on FreeBSD -- the
 additional directory is removed from C<@INC> altogether.
 
 The static-scanning heuristic is not likely to be 100% accurate, especially
@@ -1087,7 +1087,7 @@ sub add_deps {
                            type   => $type );
             }
 
-            ### Now, handle module and distribudion share dirs
+            ### Now, handle module and distribution share dirs
             # convert 'Module/Name' to 'Module-Name'
             my $modname = $path;
             $modname =~ s|/|-|g;
@@ -1279,7 +1279,7 @@ sub _compile_or_execute {
                        [ $INC{"Module/ScanDeps/DataFeed.pm"}, $dump_file ],
                        [ qw( datafeedpm dump_file ) ]);
 
-    # save %INC etc so that further requires dont't pollute them
+    # save %INC etc so that further requires don't pollute them
     print $feed_fh <<'...';
     %Module::ScanDeps::DataFeed::_INC = %INC;
     @Module::ScanDeps::DataFeed::_INC = @INC;
