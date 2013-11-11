@@ -1,10 +1,10 @@
 #!/usr/bin/perl
 
-use Test;
-BEGIN { plan tests => 2 }
+use strict;
+use warnings;
 
+use Test::More tests => 2;
 use Module::ScanDeps;
-
 use lib qw(t/data);
 
 my $map = scan_deps(
