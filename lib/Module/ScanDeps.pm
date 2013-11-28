@@ -824,8 +824,34 @@ sub scan_line {
 
         if (my ($pragma, $args) = /^use \s+ (autouse|if) \s+ (.+)/x)
         {
-            my @args = do { no strict; no warnings; eval $args };
-            my $module = $pragma eq "autouse" ? $args[0] : $args[1];
+            # NOTE: There are different ways the MODULE may
+            # be specified for the "autouse" and "if" pragmas, e.g.
+            #   use autouse Module => qw(func1 func2);
+            #   use autouse "Module", qw(func1);
+            # To avoid to parse them ourself, we simply try to eval the 
+            # string after the pragma (in a list context). The MODULE
+            # should be the first ("autouse") or second ("if") element
+            # of the list.
+            my $module;
+            { 
+                no strict; no warnings; 
+                if ($pragma eq "autouse") {
+                    ($module) = eval $args;
+                }
+                else {
+                    # The syntax of the "if" pragma is
+                    #   use if COND, MODULE => ARGUMENTS
+                    # The COND may contain undefined functions (i.e. undefined
+                    # in Module::ScanDeps' context) which would throw an 
+                    # exception. Sneak  "1 || " in front of COND so that
+                    # COND will not be evaluated. This will work in most
+                    # cases, but there are operators with lower precedence
+                    # than "||" which will cause this trick to fail.
+                    (undef, $module) = eval "1 || $args";
+                }
+                # punt if there was a syntax error
+                return if $@ or !defined $module;
+            };
             $module =~ s{::}{/}g;
             return ("$pragma.pm", "$module.pm");
         }
