@@ -256,7 +256,9 @@ my %Preload;
     'Catalyst/Engine.pm' => 'sub',
     'CGI/Application/Plugin/Authentication.pm' => [qw( CGI/Application/Plugin/Authentication/Store/Cookie.pm )],
     'CGI/Application/Plugin/AutoRunmode.pm' => [qw( Attribute/Handlers.pm )],
-
+    'charnames.pm' => sub {
+        _find_in_inc('unicore/Name.pl') ? 'unicore/Name.pl' : 'unicode/Name.pl'
+    },
     'Class/Load.pm' => [qw( Class/Load/PP.pm )],
     'Class/MakeMethods.pm' => 'sub',
     'Class/MethodMaker.pm' => 'sub',
@@ -289,6 +291,37 @@ my %Preload;
     'Device/SerialPort.pm' => [ qw(
         termios.ph asm/termios.ph sys/termiox.ph sys/termios.ph sys/ttycom.ph
     ) ],
+    'diagnostics.pm' => sub {
+        # shamelessly taken and adapted from diagnostics.pm
+        use Config;
+        my($privlib, $archlib) = @Config{qw(privlibexp archlibexp)};
+        if ($^O eq 'VMS') {
+            require VMS::Filespec;
+            $privlib = VMS::Filespec::unixify($privlib);
+            $archlib = VMS::Filespec::unixify($archlib);
+        }
+
+        for (
+              "pod/perldiag.pod",
+              "Pod/perldiag.pod",
+              "pod/perldiag-$Config{version}.pod",
+              "Pod/perldiag-$Config{version}.pod",
+              "pods/perldiag.pod",
+              "pods/perldiag-$Config{version}.pod",
+        ) {
+            return $_ if _find_in_inc($_);
+        }
+        
+        for (
+              "$archlib/pods/perldiag.pod",
+              "$privlib/pods/perldiag-$Config{version}.pod",
+              "$privlib/pods/perldiag.pod",
+        ) {
+            return $_ if -f $_;
+        }
+
+        return 'pod/perldiag.pod';
+    },
     'Email/Send.pm' => 'sub',
     'Event.pm' => [ map "Event/$_.pm", qw(idle io signal timer var)],
     'ExtUtils/MakeMaker.pm' => sub {
@@ -327,16 +360,11 @@ my %Preload;
         # but accept JSON::XS, too (because JSON.pm might use it if present)
         return( grep /^JSON\/(PP|XS)/, _glob_in_inc('JSON', 1) );
     },
-    'Log/Log4perl.pm' => 'sub',
+    'Locale/Maketext/Lexicon.pm'    => 'sub',
+    'Locale/Maketext/GutsLoader.pm' => [qw( Locale/Maketext/Guts.pm )],
     'Log/Any.pm' => 'sub',
+    'Log/Log4perl.pm' => 'sub',
     'Log/Report/Dispatcher.pm' => 'sub',
-    'LWP/UserAgent.pm' => sub {
-        return( 
-          qw( URI/URL.pm URI/http.pm LWP/Protocol/http.pm ),
-          _glob_in_inc("LWP/Authen", 1),
-          _glob_in_inc("LWP/Protocol", 1),
-        );
-    },
     'LWP/Parallel.pm' => sub {
         _glob_in_inc( 'LWP/Parallel', 1 ),
         qw(
@@ -348,17 +376,22 @@ my %Preload;
         qw( LWP/Parallel.pm ),
         @{ _get_preload('LWP/Parallel.pm') }
     },
-    'Locale/Maketext/Lexicon.pm'    => 'sub',
-    'Locale/Maketext/GutsLoader.pm' => [qw( Locale/Maketext/Guts.pm )],
+    'LWP/UserAgent.pm' => sub {
+        return( 
+          qw( URI/URL.pm URI/http.pm LWP/Protocol/http.pm ),
+          _glob_in_inc("LWP/Authen", 1),
+          _glob_in_inc("LWP/Protocol", 1),
+        );
+    },
     'Mail/Audit.pm'                => 'sub',
     'Math/BigInt.pm'                => 'sub',
     'Math/BigFloat.pm'              => 'sub',
     'Math/Symbolic.pm'              => 'sub',
+    'MIME/Decoder.pm'               => 'sub',
     'Module/Build.pm'               => 'sub',
     'Module/Pluggable.pm'           => sub {
         _glob_in_inc('$CurrentPackage/Plugin', 1);
     },
-    'MIME/Decoder.pm'               => 'sub',
     'Moose.pm'                      => sub {
         _glob_in_inc('Moose', 1),
         _glob_in_inc('Class/MOP', 1),
@@ -384,13 +417,13 @@ my %Preload;
     'Params/Validate.pm'            => 'sub',
     'Parse/AFP.pm'                  => 'sub',
     'Parse/Binary.pm'               => 'sub',
-    'Perl/Critic.pm'                => 'sub', #not only Perl/Critic/Policy
-    'PerlIO.pm'                     => [ 'PerlIO/scalar.pm' ],
     'PDF/API2/Resource/Font.pm'     => 'sub',
     'PDF/API2/Basic/TTF/Font.pm'    => sub {
         _glob_in_inc('PDF/API2/Basic/TTF', 1);
     },
     'PDF/Writer.pm'                 => 'sub',
+    'Perl/Critic.pm'                => 'sub', #not only Perl/Critic/Policy
+    'PerlIO.pm'                     => [ 'PerlIO/scalar.pm' ],
     'POE.pm'                        => [qw( POE/Kernel.pm POE/Session.pm )],
     'POE/Component/Client/HTTP.pm'  => sub {
         _glob_in_inc('POE/Component/Client/HTTP', 1),
@@ -437,6 +470,9 @@ my %Preload;
     'Template.pm'      => 'sub',
     'Term/ReadLine.pm' => 'sub',
     'Test/Deep.pm'     => 'sub',
+    'threads/shared.pm' => [qw( attributes.pm )],
+    # anybody using threads::shared is likely to declare variables
+    # with attribute :shared
     'Tk.pm'            => sub {
         $SeenTk = 1;
         qw( Tk/FileSelect.pm Encode/Unicode.pm );
@@ -457,6 +493,11 @@ my %Preload;
     },
     'URI.pm'            => sub {
         grep !/urn/, _glob_in_inc('URI', 1);
+    },
+    'utf8.pm' => sub {
+        # Perl 5.6.x: "unicode", Perl 5.8.x and up: "unicore"
+        my $unicore = _find_in_inc('unicore/Name.pl') ? 'unicore' : 'unicode';
+        return ('utf8_heavy.pl', map $_->{name}, _glob_in_inc($unicore, 0));
     },
     'Win32/EventLog.pm'    => [qw( Win32/IPC.pm )],
     'Win32/Exe.pm'         => 'sub',
@@ -484,48 +525,6 @@ my %Preload;
             return "$impl.pm"; 
         }
         _glob_in_inc('YAML', 1);        # fallback
-    },
-    'diagnostics.pm' => sub {
-        # shamelessly taken and adapted from diagnostics.pm
-        use Config;
-        my($privlib, $archlib) = @Config{qw(privlibexp archlibexp)};
-        if ($^O eq 'VMS') {
-            require VMS::Filespec;
-            $privlib = VMS::Filespec::unixify($privlib);
-            $archlib = VMS::Filespec::unixify($archlib);
-        }
-
-        for (
-              "pod/perldiag.pod",
-              "Pod/perldiag.pod",
-              "pod/perldiag-$Config{version}.pod",
-              "Pod/perldiag-$Config{version}.pod",
-              "pods/perldiag.pod",
-              "pods/perldiag-$Config{version}.pod",
-        ) {
-            return $_ if _find_in_inc($_);
-        }
-        
-        for (
-              "$archlib/pods/perldiag.pod",
-              "$privlib/pods/perldiag-$Config{version}.pod",
-              "$privlib/pods/perldiag.pod",
-        ) {
-            return $_ if -f $_;
-        }
-
-        return 'pod/perldiag.pod';
-    },
-    'threads/shared.pm' => [qw( attributes.pm )],
-    # anybody using threads::shared is likely to declare variables
-    # with attribute :shared
-    'utf8.pm' => sub {
-        # Perl 5.6.x: "unicode", Perl 5.8.x and up: "unicore"
-        my $unicore = _find_in_inc('unicore/Name.pl') ? 'unicore' : 'unicode';
-        return ('utf8_heavy.pl', map $_->{name}, _glob_in_inc($unicore, 0));
-    },
-    'charnames.pm' => sub {
-        _find_in_inc('unicore/Name.pl') ? 'unicore/Name.pl' : 'unicode/Name.pl'
     },
 );
 
