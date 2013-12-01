@@ -219,6 +219,7 @@ But this one does not:
 =cut
 
 my $SeenTk;
+my %SeenRuntimeLoader;
 
 # Pre-loaded module dependencies {{{
 my %Preload;
@@ -406,6 +407,8 @@ my %Preload;
         qw( MozRepl/Log.pm MozRepl/Client.pm Module/Pluggable/Fast.pm ),
         _glob_in_inc('MozRepl/Plugin', 1),
     },
+    'Module/Implementation.pm'      => \&_warn_of_runtime_loader,
+    'Module/Runtime.pm'             => \&_warn_of_runtime_loader,
     'Net/DNS/RR.pm'                 => 'sub',
     'Net/FTP.pm'                    => 'sub',
     'Net/HTTPS.pm'                  => [qw( IO/Socket/SSL.pm Net/SSL.pm )],
@@ -1467,6 +1470,15 @@ sub _abs_path {
     );
 }
 
+
+sub _warn_of_runtime_loader {
+    my $module = shift;
+    return if $SeenRuntimeLoader{$module}++;
+    $module =~ s/\.pm$//;
+    $module =~ s|/|::|g;
+    warn "# Use of runtime loader module $module detected.  Results of static scanning may be incomplete.\n";
+    return;
+}
 
 sub _warn_of_missing_module {
     my $module = shift;
