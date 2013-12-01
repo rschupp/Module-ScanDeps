@@ -4,13 +4,12 @@ use strict;
 use warnings;
 
 use Test::More;
+use Test::Requires qw( prefork );
+
 use lib 't';
 use Utils;
 
 BEGIN {
-    eval { require prefork };
-    plan skip_all => "Test requires prefork.pm" if $@;
-
     # Mwuahahaha!
     delete $INC{"prefork.pm"};
     %prefork:: = ();

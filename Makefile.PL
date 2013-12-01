@@ -11,7 +11,8 @@ requires        'File::Temp'                => '0';
 requires        'File::Spec'                => '0';
 requires        'Module::Build::ModuleInfo' => '0';
 requires        'version'                   => '0';
-build_requires  'Test::More'                => '0';
+test_requires   'Test::More'                => '0';
+test_requires   'Test::Requires'            => '0';
 
 install_script  'script/scandeps.pl';
 
