@@ -225,6 +225,7 @@ my %Preload;
 %Preload = (
     'AnyDBM_File.pm'  => [qw( SDBM_File.pm )],
     'Authen/SASL.pm'  => 'sub',
+    'B/Hooks/EndOfScope.pm' => [qw( B/Hooks/EndOfScope/PP.pm B/Hooks/EndOfScope/XS.pm )],
     'Bio/AlignIO.pm'  => 'sub',
     'Bio/Assembly/IO.pm'  => 'sub',
     'Bio/Biblio/IO.pm'  => 'sub',
