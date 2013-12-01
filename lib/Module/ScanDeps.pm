@@ -424,6 +424,9 @@ my %Preload;
     'PDF/Writer.pm'                 => 'sub',
     'Perl/Critic.pm'                => 'sub', #not only Perl/Critic/Policy
     'PerlIO.pm'                     => [ 'PerlIO/scalar.pm' ],
+    'Pod/Usage.pm'                  => sub {  # from Pod::Usage (as of 1.61)
+         $] >= 5.005_58 ? 'Pod/Text.pm' : 'Pod/PlainText.pm'
+     },
     'POE.pm'                        => [qw( POE/Kernel.pm POE/Session.pm )],
     'POE/Component/Client/HTTP.pm'  => sub {
         _glob_in_inc('POE/Component/Client/HTTP', 1),
