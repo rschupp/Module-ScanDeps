@@ -1,3 +1,7 @@
+[Changes for 1.12 - 2013-12-21]
+* Fix recognition of (open() arguments) "<:encoding(klingon)",
+  implies modules PerlIO and PerlIO::encoding.
+
 [Changes for 1.12 - 2013-12-01]
 * Fix RT #90869: Use of uninitialized value $module in substitution (s///)
 
