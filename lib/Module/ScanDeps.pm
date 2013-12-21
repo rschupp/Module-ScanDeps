@@ -960,14 +960,20 @@ sub scan_chunk {
             my $diamond = $1;
             return "File/Glob.pm" if $diamond =~ /[*?\[\]{}~\\]/;
         }
+
         return "DBD/$1.pm"    if /\b[Dd][Bb][Ii]:(\w+):/;
-        if (/(?:(:encoding)|\b(?:en|de)code)\(\s*['"]?([-\w]+)/) {
-            my $mod = _find_encoding($2);
-            my @mods = ( 'Encoding.pm' );       # always needed
-            push @mods, 'PerlIO.pm' if $1;      # needed for ":encoding(...)"
+
+        # check for stuff like
+        #   decode("klingon", ...)
+        #   open FH, "<:encoding(klingon)", ...
+        if (my ($io_layer, $encoding) = /(?:(:encoding)|\b(?:en|de)code)\(\s*['"]?([-\w]+)/) {
+            my @mods;
+            my $mod = _find_encoding($encoding);
             push @mods, $mod if $mod;           # "external" Encode module
+            push @mods, qw( PerlIO.pm PerlIO/encoding.pm ) if $io_layer;
             return \@mods;
         }
+
         return $1 if /^(?:do|require)\s+[^"]*"(.*?)"/;
         return $1 if /^(?:do|require)\s+[^']*'(.*?)'/;
         return $1 if /[^\$]\b([\w:]+)->\w/ and $1 ne 'Tk' and $1 ne 'shift';
