@@ -24,9 +24,9 @@ plan tests => 3 * 2 * @dyna_mods;
 
 foreach my $module (@dyna_mods)
 {
-    # cf. XSLoader.pm
+    # cf. DynaLoader.pm
     my @modparts = split(/::/,$module);
-    my $modfname = $modparts[-1];
+    my $modfname = defined &DynaLoader::mod2fname ? DynaLoader::mod2fname(\@modparts) : $modparts[-1];
     my $auto_path = join('/', 'auto', @modparts, "$modfname.$Config::Config{dlext}");
 
     check_bundle_path($module, $auto_path, ".pl", <<"...",

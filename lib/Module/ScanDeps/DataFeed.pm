@@ -66,9 +66,9 @@ sub _dl_mod2filename {
 
     my $dl_ext = $Config::Config{dlext};
 
-    # Copied from XSLoader
+    # cf. DynaLoader.pm
     my @modparts = split(/::/, $mod);
-    my $modfname = $modparts[-1];
+    my $modfname = defined &DynaLoader::mod2fname ? DynaLoader::mod2fname(\@modparts) : $modparts[-1];
     my $modpname = join('/', @modparts);
 
     foreach my $dir (@_INC) {
