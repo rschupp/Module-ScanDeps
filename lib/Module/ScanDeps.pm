@@ -26,7 +26,7 @@ use File::Temp ();
 use File::Spec ();
 use File::Basename ();
 use FileHandle;
-use Module::Build::ModuleInfo;
+use Module::Metadata;
 
 $ScanFileRE = qr/(?:^|\\|\/)(?:[^.]*|.*\.(?i:p[ml]|t|al))$/;
 
@@ -544,8 +544,8 @@ sub path_to_inc_name($$) {
 
     if ($path =~ m/\.pm$/io) {
         die "$path doesn't exist" unless (-f $path);
-        my $module_info = Module::Build::ModuleInfo->new_from_file($path);
-        die "Module::Build::ModuleInfo error: $!" unless defined($module_info);
+        my $module_info = Module::Metadata->new_from_file($path);
+        die "Module::Metadata error: $!" unless defined($module_info);
         $inc_name = $module_info->name();
         if (defined($inc_name)) {
             $inc_name =~ s|\:\:|\/|og;

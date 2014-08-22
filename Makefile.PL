@@ -9,7 +9,7 @@ repository      'http://svn.openfoundry.org/par/Module-ScanDeps/trunk/';
 perl_version    '5.008001';
 requires        'File::Temp'                => '0';
 requires        'File::Spec'                => '0';
-requires        'Module::Build::ModuleInfo' => '0';
+requires        'Module::Metadata'          => '0';
 requires        'version'                   => '0';
 test_requires   'Test::More'                => '0';
 test_requires   'Test::Requires'            => '0';
