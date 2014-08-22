@@ -1,10 +1,10 @@
-[Changes for 1.13 - 2014-08-03]
+[Changes for 1.14 - 2014-08-03]
 * Fix RT #92860 (t/7-check-dynaloader.t doesn't handle systems with mod2fname),
       RT #97519 (Fix for t/7-check-dynaloader.t on systems with DynaLoader::mod2fname)
   - applied patch from Brian Fraser (fraserbn@gmail.com), thanks!
   - lib/Module/ScanDeps/DataFeed.pm: apply here, too
 
-[Changes for 1.12 - 2013-12-21]
+[Changes for 1.13 - 2013-12-21]
 * Fix recognition of (open() arguments) "<:encoding(klingon)",
   implies modules PerlIO and PerlIO::encoding.
 
