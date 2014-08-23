@@ -117,8 +117,8 @@ If C<$compile> or C<$execute> is true, runs C<files> in either
 compile-only or normal mode, then inspects their C<%INC> after
 termination to determine additional runtime dependencies.
 
-If C<$execute> is an array reference, runs the files contained
-in it instead of C<@files>.
+If C<$execute> is an array reference, passes C<@$execute>
+as arguments to each file in C<@files> when it is run.
 
 If performance of the scanning process is a concern, C<cache_file> can be
 set to a filename. The scanning results will be cached and written to the
@@ -733,32 +733,26 @@ sub scan_deps_runtime {
 
     $files = (ref($files)) ? $files : [$files];
 
-    my ($inchash, $incarray, $dl_shared_objects) = ({}, [], []);
     if ($compile) {
-        my $file;
-
-        foreach $file (@$files) {
+        foreach my $file (@$files) {
             next unless $file =~ $ScanFileRE;
 
-            ($inchash, $dl_shared_objects, $incarray) = ({}, [], []);
-            _compile_or_execute($compile, $perl, $file, $inchash, $dl_shared_objects, $incarray);
+            my ($inchash, $dl_shared_objects, $incarray) = ({}, [], []);
+            _compile_or_execute($perl, $file, undef,
+                                $inchash, $dl_shared_objects, $incarray);
 
-            my $rv_sub = _make_rv($inchash, $dl_shared_objects, $incarray);
-            _merge_rv($rv_sub, $rv);
+            _merge_rv(_make_rv($inchash, $dl_shared_objects, $incarray), $rv);
         }
     }
     elsif ($execute) {
-        my $excarray = (ref($execute)) ? $execute : [@$files];
-        my $exc;
-        foreach $exc (@$excarray) {
-            ($inchash, $dl_shared_objects, $incarray) = ({}, [], []);
-            _compile_or_execute($compile, $perl, $exc, $inchash, $dl_shared_objects, $incarray);
-        }
+        foreach my $file (@$files) {
+            $execute = [] unless ref $execute;  # make sure it's an array ref
+            my ($inchash, $dl_shared_objects, $incarray) = ({}, [], []);
+            _compile_or_execute($perl, $file, $execute,
+                                $inchash, $dl_shared_objects, $incarray);
 
-        # XXX only retains data from last execute ...  Why? I suspect
-        # the above loop was added later.  Needs test cases --Eric
-        my $rv_sub = _make_rv($inchash, $dl_shared_objects, $incarray);
-        _merge_rv($rv_sub, $rv);
+            _merge_rv(_make_rv($inchash, $dl_shared_objects, $incarray), $rv);
+        }
     }
 
     return ($rv);
@@ -1287,8 +1281,10 @@ sub get_files {
 
 # scan_deps_runtime utility functions
 
+# compile $file if $execute is undef,
+# otherwise execute $file with arguments @$execute
 sub _compile_or_execute {
-    my ($compile, $perl, $file, $inchash, $dl_shared_objects, $incarray) = @_;
+    my ($perl, $file, $execute, $inchash, $dl_shared_objects, $incarray) = @_;
 
     require Module::ScanDeps::DataFeed; 
     # ... so we can find it's full pathname in %INC
@@ -1307,7 +1303,7 @@ sub _compile_or_execute {
                    "*0 = \\\$Module::ScanDeps::DataFeed::_0;\n",
                    "}\n";
 
-    print $feed_fh $compile ? "CHECK {\n" : "END {\n";
+    print $feed_fh $execute ? "END {\n" : "CHECK {\n" ;
     # NOTE: When compiling the block will run as the last CHECK block;
     # when executing the block will run as the first END block and 
     # the programs continues.
@@ -1330,7 +1326,7 @@ sub _compile_or_execute {
 }
 ...
 
-    # append the file to compile
+    # append the file to compile or execute
     {
         open my $fhin, "<", $file or die "Couldn't open $file: $!";
         print $feed_fh qq[#line 1 "$file"\n], <$fhin>;
@@ -1341,16 +1337,18 @@ sub _compile_or_execute {
     File::Path::rmtree( ['_Inline'], 0, 1); # XXX hack
     
     my @cmd = ($perl);
-    push @cmd, "-c" if $compile;
+    push @cmd, "-c" unless $execute;
     push @cmd, map { "-I$_" } @IncludeLibs;
-    my $rc = system(@cmd, $feed_file);
+    push @cmd, $feed_file;
+    push @cmd, @$execute if $execute;
+    my $rc = system(@cmd);
 
     _extract_info($dump_file, $inchash, $dl_shared_objects, $incarray) 
         if $rc == 0;
     unlink($feed_file, $dump_file);
-    die $compile
-        ? "SYSTEM ERROR in compiling $file: $rc" 
-        : "SYSTEM ERROR in executing $file: $rc" 
+    die $execute
+        ? "SYSTEM ERROR in executing $file @$execute: $rc" 
+        : "SYSTEM ERROR in compiling $file: $rc" 
         unless $rc == 0;
 }
 

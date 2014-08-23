@@ -11,6 +11,7 @@ requires        'File::Temp'                => '0';
 requires        'File::Spec'                => '0';
 requires        'Getopt::Long'              => '0';
 requires        'Module::Metadata'          => '0';
+requires        'Text::ParseWords'          => '0';
 requires        'version'                   => '0';
 test_requires   'Test::More'                => '0';
 test_requires   'Test::Requires'            => '0';

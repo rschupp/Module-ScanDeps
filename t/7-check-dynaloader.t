@@ -20,7 +20,7 @@ plan skip_all => "No dynamic module found (tried @try_mods)"
     unless @dyna_mods;
 diag "dynamic modules used for test: @dyna_mods";
 
-plan tests => 3 * 2 * @dyna_mods;
+plan tests => 4 * 2 * @dyna_mods;
 
 foreach my $module (@dyna_mods)
 {
@@ -59,6 +59,18 @@ exit(0);
                 files   => [ $_[0] ],
                 recurse => 0,
                 execute => 1);
+        }
+    );
+    check_bundle_path($module, $auto_path, ".pl", <<"...",
+# no way in hell can this detected by static analysis :)
+my \$req = join("", qw( r e q u i r e ));
+eval "\$req \$_" foreach \@ARGV;
+exit(0);
+...
+        sub { scan_deps_runtime(
+                files   => [ $_[0] ],
+                recurse => 0,
+                execute => [ $module ]);
         }
     );
 }
