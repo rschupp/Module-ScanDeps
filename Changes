@@ -1,3 +1,13 @@
+[Changes for 1.15 - 2014-08-23]
+* Fix RT #98203: Migrate from deprecated Module::Build::ModuleInfo to Module::Metadata
+  - thanx Petr Pisar (ppisar@redhat.com) for the hint
+
+* add long option names to scandeps.pl
+
+* implement option --xargs for scandeps.pl
+
+* fix wrong version numbers in Changes
+
 [Changes for 1.14 - 2014-08-03]
 * Fix RT #92860 (t/7-check-dynaloader.t doesn't handle systems with mod2fname),
       RT #97519 (Fix for t/7-check-dynaloader.t on systems with DynaLoader::mod2fname)
