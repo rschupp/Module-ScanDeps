@@ -4,13 +4,22 @@ $VERSION = '0.76';
 
 use strict;
 use Config;
-use Getopt::Std;
+use Getopt::Long;
 use Module::ScanDeps;
 use ExtUtils::MakeMaker;
 use subs qw( _name _modtree );
 
 my %opts;
-getopts('BVRxce:C:', \%opts);
+Getopt::Long::Configure("bundling");
+GetOptions(\%opts,
+    "B|bundle",
+    "C|cachedeps=s",
+    "c|compile".
+    "e|eval=s",
+    "R|no-recurse",
+    "V|verbose",
+    "x|execute",
+);
 
 my (%map, %skip);
 my $core    = $opts{B};
@@ -175,27 +184,27 @@ up by the heuristic anyway.
 
 =over 4
 
-=item -e STRING
+=item B<-e>, B<--eval>=I<STRING>
 
 Scan I<STRING> as a string containing perl code.
 
-=item -c
+=item B<-c>, B<--compile>
 
 Compiles the code and inspects its C<%INC>, in addition to static scanning.
 
-=item -x
+=item B<-x>, B<--execute>
 
 Executes the code and inspects its C<%INC>, in addition to static scanning.
 
-=item -B
+=item B<-B>, B<--bundle>
 
 Include core modules in the output and the recursive search list.
 
-=item -R
+=item B<-R>, B<--no-recurse>
 
 Only show dependencies found in the files listed and do not recurse.
 
-=item -V
+=item B<-V>, B<--verbose>
 
 Verbose mode: Output all files found during the process; 
 show dependencies between modules and availability.
@@ -204,7 +213,7 @@ Additionally, warns of any missing dependencies. If you find missing
 dependencies that aren't really dependencies, you have probably found
 false positives.
 
-=item -C CACHEFILE
+=item B<-C>, B<--cachedeps>=I<CACHEFILE>
 
 Use CACHEFILE to speed up the scanning process by caching dependencies.
 Creates CACHEFILE if it does not exist yet.
