@@ -9,6 +9,8 @@ use Module::ScanDeps;
 use ExtUtils::MakeMaker;
 use subs qw( _name _modtree );
 
+my $usage = "Usage: $0 [ -B ] [ -V ] [ -x [ --xargs STRING ] | -c ] [ -R ] [-C FILE ] [ -e STRING | FILE ... ]\n";
+
 my %opts;
 GetOptions(\%opts,
     "B|bundle",
@@ -19,7 +21,7 @@ GetOptions(\%opts,
     "R|no-recurse",
     "V|verbose",
     "x|execute",
-);
+) or die $usage;
 
 my (%map, %skip);
 my $core    = $opts{B};
@@ -40,7 +42,7 @@ if ($opts{x} && defined $opts{xargs}) {
     $opts{x} = [ Text::ParseWords::shellwords($opts{xargs}) ];
 }
 
-die "Usage: $0 [ -B ] [ -V ] [ -x | -c ] [ -R ] [-C FILE ] [ -e STRING | FILE ... ]\n" unless @ARGV;
+die $usage unless @ARGV;
 
 my @files = @ARGV;
 while (<>) {
