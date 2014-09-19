@@ -15,7 +15,7 @@ my %opts;
 GetOptions(\%opts,
     "B|bundle",
     "C|cachedeps=s",
-    "c|compile".
+    "c|compile",
     "e|eval=s",
     "xargs=s",
     "R|no-recurse",
