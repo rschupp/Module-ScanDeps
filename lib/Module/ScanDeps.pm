@@ -467,6 +467,7 @@ my %Preload;
     'SQL/Translator/Schema.pm' => sub {
         _glob_in_inc('SQL/Translator', 1);
     },
+    'Sub/Exporter/Progressive.pm'   => [qw( Sub/Exporter.pm )],
     'SVK/Command.pm' => sub {
         _glob_in_inc('SVK', 1);
     },
@@ -772,22 +773,21 @@ sub scan_file{
         foreach my $pm (scan_line($line)) {
             last LINE if $pm eq '__END__';
 
-            # Skip Tk hits from Term::ReadLine and Tcl::Tk
-            my $pathsep = qr/\/|\\|::/;
-            if ($pm =~ /^Tk\b/) {
-                next if $file =~ /(?:^|${pathsep})Term${pathsep}ReadLine\.pm$/;
-                next if $file =~ /(?:^|${pathsep})Tcl${pathsep}Tk\W/;
-            }
             if ($pm eq '__POD__') {
                 while (<$FH>) {
                     last if (/^=cut/);
                 }
                 next LINE;
             }
+
+            # Skip Tk hits from Term::ReadLine and Tcl::Tk
+            my $pathsep = qr/\/|\\|::/;
+            if ($pm =~ /^Tk\b/) {
+                next if $file =~ /(?:^|${pathsep})Term${pathsep}ReadLine\.pm$/;
+                next if $file =~ /(?:^|${pathsep})Tcl${pathsep}Tk\W/;
+            }
             $SeenTk || do{$SeenTk = 1 if $pm =~ /Tk\.pm$/;};
-            # the following line does not make much sense here ???
-            # $file is an absolute path and will never match
-            #$pm = 'CGI/Apache.pm' if $file =~ /^Apache(?:\.pm)$/;
+
             $found{$pm}++;
         }
     }
@@ -970,8 +970,6 @@ sub scan_chunk {
 
         return $1 if /^(?:do|require)\s+[^"]*"(.*?)"/;
         return $1 if /^(?:do|require)\s+[^']*'(.*?)'/;
-        return $1 if /[^\$]\b([\w:]+)->\w/ and $1 ne 'Tk' and $1 ne 'shift';
-        return $1 if /\b(\w[\w:]*)::\w+\(/ and $1 ne 'main' and $1 ne 'SUPER';
 
         if ($SeenTk) {
             my @modules;
@@ -992,6 +990,13 @@ sub scan_chunk {
             }
             return \@modules;
         }
+
+        # Module::Runtime
+        return $1 if /\b(?:require_module|use_module|use_package_optimistically) \s* \( \s* ([\w:"']+)/x;
+
+        return $1 if /[^\$]\b([\w:]+)->\w/ and $1 ne 'Tk' and $1 ne 'shift';
+        return $1 if /\b(\w[\w:]*)::\w+\(/ and $1 ne 'main' and $1 ne 'SUPER';
+
         return;
     };
 
