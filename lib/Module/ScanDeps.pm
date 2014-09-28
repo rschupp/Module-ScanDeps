@@ -994,9 +994,6 @@ sub scan_chunk {
         # Module::Runtime
         return $1 if /\b(?:require_module|use_module|use_package_optimistically) \s* \( \s* ([\w:"']+)/x;
 
-        return $1 if /[^\$]\b([\w:]+)->\w/ and $1 ne 'Tk' and $1 ne 'shift';
-        return $1 if /\b(\w[\w:]*)::\w+\(/ and $1 ne 'main' and $1 ne 'SUPER';
-
         return;
     };
 
