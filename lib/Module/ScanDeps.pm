@@ -994,6 +994,9 @@ sub scan_chunk {
         # Module::Runtime
         return $1 if /\b(?:require_module|use_module|use_package_optimistically) \s* \( \s* ([\w:"']+)/x;
 
+        # Test::More
+        return $1 if /\b(?:require_ok|use_ok) \s* \( \s* ([\w:"']+)/x;
+
         return;
     };
 
