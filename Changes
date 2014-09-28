@@ -1,3 +1,42 @@
+[Changes for 1.16 - 2014-09-28]
+
+* Fix RT#98938: recognize Module::Runtime module-loading functions
+
+* Fix a nasty typo that broke scandeps.pl option -E
+
+    $ scandeps -E "some string"
+    Unknown option: E
+    Can't open some string: No such file or directory at scandeps.pl line 49.
+
+  - also scandeps.pl: die if an option is not recognized
+
+* Remove some overzealous heuristics from scan_chunk()
+  - they were looking for 
+
+    Foo::Bar->something
+    Foo::Bar::whatever(...)
+
+  _anywhere_ in programs to infer a dependency on Foo/Bar.pm.
+
+  BEWARE: This might break some use cases, i.e. missing some dependencies.
+  On the other hand,  this causes hard to investigate problems like the one 
+  starting at http://www.mail-archive.com/par@perl.org/msg05531.html.
+  While the former can easily be worked around by the user itself (just 
+  add a missing dependecy explicitly, e.g. using "pp -M ...") and
+  typically can be solved in general by adding a %Preload rule,
+  the latter just wastes people's times.
+
+* Recognize Test::More require_ok() and use_ok()
+  - makes 3-static_oo_interface_real.t pass again (fallout from the above)
+
+* Upgrade to Module::Install 1.12
+
+* Add option -T to request information from CPAN
+  - don't access CPAN behind the user's back just because they have
+    CPANPLUS installed (it was in the Perl core from 5.10 to 5.18) -
+    it might not even have been configured (e.g. in a corporate internet)
+  - only do this when explicitly requested
+
 [Changes for 1.15 - 2014-08-23]
 * Fix RT #98203: Migrate from deprecated Module::Build::ModuleInfo to Module::Metadata
   - thanx Petr Pisar (ppisar@redhat.com) for the hint
