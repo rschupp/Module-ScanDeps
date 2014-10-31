@@ -1,3 +1,21 @@
+1.17  2014-10-31
+
+  - scandeps.pl: die if an option is not recognized
+
+  - Reformat Changes file according to CPAN::Changes::Spec
+
+  - Modify %Preload rule: let Unicode::UCD explicitly imply utf8.pm.
+    This fixes PAR::Packer's self test.
+    Previously Unicode::UCD implied utf8.pm implicitly because
+    it contains calls to some utf8::foo() functions.
+
+  - Add %Preload rule: Mozilla::CA requires its cacert.pem file
+
+  - Recognize "do filename" constructs even if "do" isn't at the start
+    of a chunk.
+
+  - Upgrade to Module::Install 1.14
+
 1.16  2014-09-28
 
   - Fix RT#98938: recognize Module::Runtime module-loading functions
