@@ -403,6 +403,7 @@ my %Preload;
         _glob_in_inc('MooseX/POE', 1),
         _glob_in_inc('MooseX/Async', 1),
     },
+    'Mozilla/CA.pm'                 => [qw( Mozilla/CA/cacert.pem )],
     'MozRepl.pm'                    => sub {
         qw( MozRepl/Log.pm MozRepl/Client.pm Module/Pluggable/Fast.pm ),
         _glob_in_inc('MozRepl/Plugin', 1),
