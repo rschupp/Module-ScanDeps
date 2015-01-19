@@ -21,7 +21,11 @@ sub _dump_info
         # (2) If a key in %INC was located via a CODE or ARRAY ref or
         #     blessed object in @INC the corresponding value in %INC contains
         #     the ref from @INC.
-        if (defined $v && !ref $v)
+        # (3) Some modules (e.g. Moose) fake entries in %INC, e.g.
+        #     "Class/MOP/Class/Immutable/Moose/Meta/Class.pm" => "(set by Moose)"
+        #     On some architectures (e.g. Windows) Cwd::abs_path() will throw
+        #     an exception for such a pathname.
+        if (defined $v && !ref $v && -e $v)
         {
             $_INC{$k} = Cwd::abs_path($v);
         }
