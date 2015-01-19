@@ -1,3 +1,7 @@
+1.18  2015-01-19
+
+  - Fix RT #101569: Incorrect module parsing if Moose is included
+
 1.17  2014-10-31
 
   - scandeps.pl: die if an option is not recognized
