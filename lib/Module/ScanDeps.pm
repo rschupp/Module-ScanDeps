@@ -225,6 +225,7 @@ my %SeenRuntimeLoader;
 my %Preload;
 %Preload = (
     'AnyDBM_File.pm'  => [qw( SDBM_File.pm )],
+    'AnyEvent.pm'     => 'sub',
     'Authen/SASL.pm'  => 'sub',
     'B/Hooks/EndOfScope.pm' => [qw( B/Hooks/EndOfScope/PP.pm B/Hooks/EndOfScope/XS.pm )],
     'Bio/AlignIO.pm'  => 'sub',
