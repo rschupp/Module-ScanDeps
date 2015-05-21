@@ -391,6 +391,7 @@ my %Preload;
     'Math/BigFloat.pm'              => 'sub',
     'Math/Symbolic.pm'              => 'sub',
     'MIME/Decoder.pm'               => 'sub',
+    'MIME/Types.pm'                 => [qw( MIME/types.db )],
     'Module/Build.pm'               => 'sub',
     'Module/Pluggable.pm'           => sub {
         _glob_in_inc('$CurrentPackage/Plugin', 1);
