@@ -365,10 +365,11 @@ my %Preload;
     },
     'Locale/Maketext/Lexicon.pm'    => 'sub',
     'Locale/Maketext/GutsLoader.pm' => [qw( Locale/Maketext/Guts.pm )],
-    'Log/Any.pm' => 'sub',
-    'Log/Log4perl.pm' => 'sub',
-    'Log/Report/Dispatcher.pm' => 'sub',
-    'LWP/Parallel.pm' => sub {
+    'Log/Any.pm'                => 'sub',
+    'Log/Log4perl.pm'           => 'sub',
+    'Log/Report/Dispatcher.pm'  => 'sub',
+    'LWP/MediaTypes.pm'         => [qw( LWP/media.types )],
+    'LWP/Parallel.pm'           => sub {
         _glob_in_inc( 'LWP/Parallel', 1 ),
         qw(
             LWP/ParallelUA.pm       LWP/UserAgent.pm
@@ -379,7 +380,7 @@ my %Preload;
         qw( LWP/Parallel.pm ),
         @{ _get_preload('LWP/Parallel.pm') }
     },
-    'LWP/UserAgent.pm' => sub {
+    'LWP/UserAgent.pm'          => sub {
         return( 
           qw( URI/URL.pm URI/http.pm LWP/Protocol/http.pm ),
           _glob_in_inc("LWP/Authen", 1),
