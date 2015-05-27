@@ -1,3 +1,20 @@
+1.19  2015-05-27
+
+  - add %Preload rule for LWP::MediaTypes: data file LWP/media.types 
+
+  - add %Preload entry for MIME::Types: data file MIME/types.db
+
+  - add %Preload rule for AnyEvent
+
+  - always add Encode.pm when fix encountering constructs like
+
+      decode("klingon", ...)
+      open FH, "<:encoding(klingon)", ..
+
+  - add license
+
+  - update OpenFoundry repository URL
+
 1.18  2015-01-19
 
   - Fix RT #101569: Incorrect module parsing if Moose is included
