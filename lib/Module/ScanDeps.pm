@@ -958,12 +958,16 @@ sub scan_chunk {
         # check for stuff like
         #   decode("klingon", ...)
         #   open FH, "<:encoding(klingon)", ...
-        if (my ($io_layer, $encoding) = /(?:(:encoding)|\b(?:en|de)code)\(\s*['"]?([-\w]+)/) {
-            my @mods = qw( Encode.pm );
-            my $ext = _find_encoding($encoding); # "external" Encode module
-            push @mods, $ext if $ext;
-            push @mods, qw( PerlIO.pm PerlIO/encoding.pm ) if $io_layer;
-            return \@mods;
+        if (my ($args) = /\b(?:open|binmode)\b(.*)/) {
+            my @mods;
+            push @mods, qw( PerlIO.pm PerlIO/encoding.pm Encode.pm ), _find_encoding($1)
+                if $args =~ /:encoding\((.*?)\)/;
+            push @mods, qw( PerlIO.pm PerlIO/via.pm )
+                if $args =~ /:via\(/;
+            return \@mods if @mods;
+        }
+        if (/\b(?:en|de)code\(\s*['"]?([-\w]+)/) {
+            return [qw( Encode.pm ), _find_encoding($1)]; 
         }
 
         return $1 if /\b do \s+ ([\w:\.\-\\\/\"\']*)/x;
