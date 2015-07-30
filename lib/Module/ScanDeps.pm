@@ -431,6 +431,7 @@ my %Preload;
         _glob_in_inc('PDF/API2/Basic/TTF', 1);
     },
     'PDF/Writer.pm'                 => 'sub',
+    'PDL/NiceSlice.pm'              => 'sub',
     'Perl/Critic.pm'                => 'sub', #not only Perl/Critic/Policy
     'PerlIO.pm'                     => [ 'PerlIO/scalar.pm' ],
     'Pod/Usage.pm'                  => sub {  # from Pod::Usage (as of 1.61)
