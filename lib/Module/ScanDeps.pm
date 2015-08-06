@@ -786,7 +786,7 @@ sub scan_file{
                 next if $file =~ /(?:^|${pathsep})Term${pathsep}ReadLine\.pm$/;
                 next if $file =~ /(?:^|${pathsep})Tcl${pathsep}Tk\W/;
             }
-            $SeenTk || do{$SeenTk = 1 if $pm =~ /Tk\.pm$/;};
+            $SeenTk ||= $pm =~ /Tk\.pm$/;
 
             $found{$pm}++;
         }
