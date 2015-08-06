@@ -1287,6 +1287,12 @@ sub get_files {
     return $self->{info};
 }
 
+sub add_preload_rule {
+    my ($pm, $rule) = @_;
+    die qq[a preload rule for "$pm" already exists] if $Preload{$pm};
+    $Preload{$pm} = $rule;
+}
+
 # scan_deps_runtime utility functions
 
 # compile $file if $execute is undef,
