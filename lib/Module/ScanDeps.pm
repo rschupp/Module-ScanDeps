@@ -1348,8 +1348,6 @@ sub _compile_or_execute {
     }
     close $feed_fh;
 
-    File::Path::rmtree( ['_Inline'], 0, 1); # XXX hack
-    
     my @cmd = ($perl);
     push @cmd, "-c" unless $execute;
     push @cmd, map { "-I$_" } @IncludeLibs;
