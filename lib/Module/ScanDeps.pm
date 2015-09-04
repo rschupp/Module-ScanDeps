@@ -1300,64 +1300,128 @@ sub add_preload_rule {
 sub _compile_or_execute {
     my ($perl, $file, $execute, $inchash, $dl_shared_objects, $incarray) = @_;
 
-    require Module::ScanDeps::DataFeed; 
-    # ... so we can find it's full pathname in %INC
-
-    my ($feed_fh, $feed_file) = File::Temp::tempfile();
-    my $dump_file = "$feed_file.out";
-
-    require Data::Dumper;
+    my ($fh, $instrumented_file) = File::Temp::tempfile();
 
     # spoof $0 (to $file) so that FindBin works as expected
     # NOTE: We don't directly assign to $0 as it has magic (i.e.
     # assigning has side effects and may actually fail, cf. perlvar(1)).
     # Instead we alias *0 to a package variable holding the correct value.
-    print $feed_fh "BEGIN {\n", 
-                   Data::Dumper->Dump([ $file ], [ "Module::ScanDeps::DataFeed::_0" ]),
-                   "*0 = \\\$Module::ScanDeps::DataFeed::_0;\n",
-                   "}\n";
+    local $ENV{MSD_ORIGINAL_FILE} = $file;
+    print $fh <<'...';
+BEGIN { my $_0 = $ENV{MSD_ORIGINAL_FILE}; *0 = \$_0; }
+...
 
-    print $feed_fh $execute ? "END {\n" : "CHECK {\n" ;
+    my (undef, $data_file) = File::Temp::tempfile();
+    local $ENV{MSD_DATA_FILE} = $data_file;
+
     # NOTE: When compiling the block will run as the last CHECK block;
     # when executing the block will run as the first END block and 
     # the programs continues.
+    print $fh $execute ? "END\n" : "CHECK\n", <<'...';
+{
+    # save %INC etc so that requires below don't pollute them
+    my %_INC = %INC;
+    my @_INC = @INC;
+    my @_dl_shared_objects = @DynaLoader::dl_shared_objects;
+    my @_dl_modules = @DynaLoader::dl_modules;
 
-    # correctly escape strings containing filenames
-    print $feed_fh map { "my $_" } Data::Dumper->Dump(
-                       [ $INC{"Module/ScanDeps/DataFeed.pm"}, $dump_file ],
-                       [ qw( datafeedpm dump_file ) ]);
+    require Cwd;
+    require DynaLoader;
+    require Data::Dumper;
+    require B; 
+    require Config;
 
-    # save %INC etc so that further requires don't pollute them
-    print $feed_fh <<'...';
-    %Module::ScanDeps::DataFeed::_INC = %INC;
-    @Module::ScanDeps::DataFeed::_INC = @INC;
-    @Module::ScanDeps::DataFeed::_dl_shared_objects = @DynaLoader::dl_shared_objects;
-    @Module::ScanDeps::DataFeed::_dl_modules = @DynaLoader::dl_modules;
+    while (my ($k, $v) = each %_INC)
+    {
+        # NOTES:
+        # (1) An unsuccessful "require" may store an undefined value into %INC.
+        # (2) If a key in %INC was located via a CODE or ARRAY ref or
+        #     blessed object in @INC the corresponding value in %INC contains
+        #     the ref from @INC.
+        # (3) Some modules (e.g. Moose) fake entries in %INC, e.g.
+        #     "Class/MOP/Class/Immutable/Moose/Meta/Class.pm" => "(set by Moose)"
+        #     On some architectures (e.g. Windows) Cwd::abs_path() will throw
+        #     an exception for such a pathname.
+        if (defined $v && !ref $v && -e $v)
+        {
+            $_INC{$k} = Cwd::abs_path($v);
+        }
+        else
+        {
+            delete $_INC{$k};
+        }
+    }
 
-    require $datafeedpm;
+    # drop refs from @_INC
+    @_INC = grep { !ref $_ } @_INC;
 
-    Module::ScanDeps::DataFeed::_dump_info($dump_file);
-}
+    my $dlext = $Config::Config{dlext};
+    my @so = grep { defined $_ && -e $_ } Module::ScanDeps::DataFeed::_dl_shared_objects();
+    my @bs = @so;
+    my @shared_objects = ( @so, grep { s/\Q.$dlext\E$/\.bs/ && -e $_ } @bs );
+
+    my $data_file = $ENV{MSD_DATA_FILE};
+    open my $fh, ">", $data_file 
+        or die "Couldn't open $data_file: $!\n";
+    print $fh Data::Dumper->Dump(
+                  [    \%_INC,  \@_INC,   \@shared_objects    ], 
+                  [qw( *inchash *incarray *dl_shared_objects )]);
+    print $fh "1;\n";
+    close $fh;
+
+    sub Module::ScanDeps::DataFeed::_dl_shared_objects {
+        if (@_dl_shared_objects) {
+            return @_dl_shared_objects;
+        }
+        elsif (@_dl_modules) {
+            return map { Module::ScanDeps::DataFeed::_dl_mod2filename($_) } @_dl_modules;
+        }
+        return;
+    }
+
+    sub Module::ScanDeps::DataFeed::_dl_mod2filename {
+        my $mod = shift;
+
+        return if $mod eq 'B';
+        return unless defined &{"$mod\::bootstrap"};
+
+        my $dl_ext = $Config::Config{dlext};
+
+        # cf. DynaLoader.pm
+        my @modparts = split(/::/, $mod);
+        my $modfname = defined &DynaLoader::mod2fname ? DynaLoader::mod2fname(\@modparts) : $modparts[-1];
+        my $modpname = join('/', @modparts);
+
+        foreach my $dir (@_INC) {
+            my $file = "$dir/auto/$modpname/$modfname.$dl_ext";
+            return $file if -r $file;
+        }
+        return;
+    }
+} # END or CHECK
 ...
 
     # append the file to compile or execute
     {
-        open my $fhin, "<", $file or die "Couldn't open $file: $!";
-        print $feed_fh qq[#line 1 "$file"\n], <$fhin>;
-        close $fhin;
+        open my $in, "<", $file or die "Couldn't open $file: $!";
+        print $fh qq[#line 1 "$file"\n], <$in>;
+        close $in;
     }
-    close $feed_fh;
+    close $fh;
 
+    # run the instrumented file
     my @cmd = ($perl);
     push @cmd, "-c" unless $execute;
     push @cmd, map { "-I$_" } @IncludeLibs;
-    push @cmd, $feed_file;
+    push @cmd, $instrumented_file;
     push @cmd, @$execute if $execute;
     my $rc = system(@cmd);
 
-    _extract_info($dump_file, $inchash, $dl_shared_objects, $incarray) 
+    _extract_info($data_file, $inchash, $dl_shared_objects, $incarray) 
         if $rc == 0;
-    unlink($feed_file, $dump_file);
+
+    unlink($instrumented_file, $data_file);
+
     die $execute
         ? "SYSTEM ERROR in executing $file @$execute: $rc" 
         : "SYSTEM ERROR in compiling $file: $rc" 
