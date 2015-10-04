@@ -1,3 +1,53 @@
+1.20  2015-10-04
+
+- Fix RT #107304: Newer versions of File::Path cause warning "_Inline for _Inline: No such file or directory at Module/ScanDeps.pm line 1339."
+  - drop the dubious call to rmtree() 
+
+- Fix RT106142: Preload dependencies for PDL and PDL::NiceSlice
+  - adopted from a patch by Shawn Laffan, thanks Shawn!
+
+- Fix RT#106144: Preload dependencies for File::BOM)
+  - adopted from a patch by Shawn Laffan, thanks Shawn!
+
+- Revise our stance on utf8.pm:
+
+  - A line of "use utf8;" just means "this file is encoded in UTF-8"
+    and should _not_ result in scanning utf8.pm which will pull in
+    the whole Unicode shebang (propery tables and what not). 
+    Yes, utf8.pm _doesn contain "require utf8_heavy.pl", but only inside 
+    an AUTOLOAD() that is _not_ triggered by calling functions 
+    like utf8::is_utf8().
+
+  - OTOH the innocently looking one-liner
+
+      perl -ne 'print if /\pN/'
+
+    implicitly loads utf8.pm and triggers the AUTOLAD().
+
+  - So prevent utf8.pm from being scanned and make utf8_heavy.pl 
+    the indicator for "I need the Unicode stuff" instead.
+
+  - Cache the results of _get_preload('utf8_heavy.pl').
+
+- Make %Preload "transitive" so that given
+
+    my %Preload = (
+      'Foo.pm' => [ 'Bar.pm' ],
+      'Bar.pm' => [ 'Quux.pm' ],
+      ...
+    );
+
+  scan_deps_static() register a dependency on Bar.pm _and_
+  Quux.pm when it saw "use Foo;" 
+
+- Minor changes:
+  - drop dubious %Preload of utf8.pm for SOAP::Lite and XML::Parser::Expat
+  - drop code for Perl < 5.008 as we require 5.8.1 already
+  - rework the implementation of -x/-c
+  - add add_preload_rule() to dynamically add a %Preload rule
+  - recognize constructs like "open FH, '<:via(Foo)', ..."
+  - upgrade to Module::Install 1.16
+
 1.19  2015-05-27
 
   - add %Preload rule for LWP::MediaTypes: data file LWP/media.types 
