@@ -704,7 +704,7 @@ sub scan_deps_static {
             recurse  => 0,
             cache_cb => $cache_cb,
             _skip    => $_skip,
-        }) or ($args->{_deep} and return);
+        });
         last if $count == keys %$rv;
     }
 
