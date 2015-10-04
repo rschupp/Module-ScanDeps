@@ -495,11 +495,9 @@ my %Preload = (
     'Tk/FBox.pm'        => [qw( Tk/folder.xpm Tk/file.xpm )],
     'Tk/Getopt.pm'      => [qw( Tk/openfolder.xpm Tk/win.xbm )],
     'Tk/Toplevel.pm'    => [qw( Tk/Wm.pm )],
-    'Unicode/UCD.pm'    => [qw( utf8.pm )],
+    'Unicode/UCD.pm'    => [qw( utf8_heavy.pl )],
     'URI.pm'            => sub { grep !/urn/, _glob_in_inc('URI', 1) },
-    'utf8.pm' => sub {
-        ('utf8_heavy.pl', map $_->{name}, _glob_in_inc('unicore', 0)) 
-    },
+    'utf8_heavy.pl'     => \&_unicore,
     'Win32/EventLog.pm'    => [qw( Win32/IPC.pm )],
     'Win32/Exe.pm'         => 'sub',
     'Win32/TieRegistry.pm' => [qw( Win32API/Registry.pm )],
@@ -692,6 +690,9 @@ sub scan_deps_static {
     }
 
     # Top-level recursion handling {{{
+
+    # prevent utf8.pm from being scanned
+    $_skip->{$rv->{"utf8.pm"}{file}}++ if $rv->{"utf8.pm"};
    
     while ($recurse) {
         my $count = keys %$rv;
@@ -1178,6 +1179,12 @@ sub _glob_in_inc {
     }
 
     return @files;
+}
+
+my $unicore_stuff;
+sub _unicore {
+    $unicore_stuff ||= [ map $_->{name}, _glob_in_inc('unicore', 0) ];
+    return @$unicore_stuff;
 }
 
 # App::Packer compatibility functions
