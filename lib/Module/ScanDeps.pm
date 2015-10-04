@@ -503,9 +503,7 @@ my %Preload;
     'Unicode/UCD.pm'    => sub { @{ _get_preload('utf8.pm') } },
     'URI.pm'            => sub { grep !/urn/, _glob_in_inc('URI', 1) },
     'utf8.pm' => sub {
-        # Perl 5.6.x: "unicode", Perl 5.8.x and up: "unicore"
-        my $unicore = _find_in_inc('unicore/Name.pl') ? 'unicore' : 'unicode';
-        return ('utf8_heavy.pl', map $_->{name}, _glob_in_inc($unicore, 0));
+        ('utf8_heavy.pl', map $_->{name}, _glob_in_inc('unicore', 0)) 
     },
     'Win32/EventLog.pm'    => [qw( Win32/IPC.pm )],
     'Win32/Exe.pm'         => 'sub',
