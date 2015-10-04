@@ -222,8 +222,7 @@ my $SeenTk;
 my %SeenRuntimeLoader;
 
 # Pre-loaded module dependencies {{{
-my %Preload;
-%Preload = (
+my %Preload = (
     'AnyDBM_File.pm'  => [qw( SDBM_File.pm )],
     'AnyEvent.pm'     => 'sub',
     'Authen/SASL.pm'  => 'sub',
@@ -377,10 +376,7 @@ my %Preload;
             LWP/RobotPUA.pm         LWP/RobotUA.pm
         ),
     },
-    'LWP/Parallel/UserAgent.pm' => sub {
-        qw( LWP/Parallel.pm ),
-        @{ _get_preload('LWP/Parallel.pm') }
-    },
+    'LWP/Parallel/UserAgent.pm' => [qw( LWP/Parallel.pm )],
     'LWP/UserAgent.pm'          => sub {
         return( 
           qw( URI/URL.pm URI/http.pm LWP/Protocol/http.pm ),
@@ -499,7 +495,7 @@ my %Preload;
     'Tk/FBox.pm'        => [qw( Tk/folder.xpm Tk/file.xpm )],
     'Tk/Getopt.pm'      => [qw( Tk/openfolder.xpm Tk/win.xbm )],
     'Tk/Toplevel.pm'    => [qw( Tk/Wm.pm )],
-    'Unicode/UCD.pm'    => sub { @{ _get_preload('utf8.pm') } },
+    'Unicode/UCD.pm'    => [qw( utf8.pm )],
     'URI.pm'            => sub { grep !/urn/, _glob_in_inc('URI', 1) },
     'utf8.pm' => sub {
         ('utf8_heavy.pl', map $_->{name}, _glob_in_inc('unicore', 0)) 
