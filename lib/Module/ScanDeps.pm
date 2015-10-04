@@ -462,9 +462,8 @@ my %Preload;
         termios.ph asm/termios.ph sys/termiox.ph sys/termios.ph sys/ttycom.ph
     ) ],
     'SOAP/Lite.pm'                  => sub {
-        ($] >= 5.008 ? ('utf8.pm') : ()), 
         _glob_in_inc('SOAP/Transport', 1),
-        _glob_in_inc('SOAP/Lite/Deserializer', 1),
+        _glob_in_inc('SOAP/Lite', 1),
     },
     'Socket/GetAddrInfo.pm'         => 'sub',
     'SQL/Parser.pm' => sub {
@@ -513,9 +512,6 @@ my %Preload;
     'XML/Parser.pm'        => sub {
         _glob_in_inc('XML/Parser/Style', 1),
         _glob_in_inc('XML/Parser/Encodings', 1),
-    },
-    'XML/Parser/Expat.pm' => sub {
-        ($] >= 5.008) ? ('utf8.pm') : ();
     },
     'XML/SAX.pm' => [qw( XML/SAX/ParserDetails.ini ) ],
     'XMLRPC/Lite.pm' => sub {
