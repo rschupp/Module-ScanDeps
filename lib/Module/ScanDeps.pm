@@ -683,12 +683,12 @@ sub scan_deps_static {
                      warn_missing => $args->{warn_missing},
                  );
 
-            my $preload = _get_preload($pm) or next;
+            my @preload = _get_preload($pm) or next;
 
             add_deps(
                      used_by => $key,
                      rv      => $args->{rv},
-                     modules => $preload,
+                     modules => \@preload,
                      skip    => $args->{skip},
                      warn_missing => $args->{warn_missing},
                  );
@@ -1563,17 +1563,32 @@ sub _warn_of_missing_module {
       if not -f $module;
 }
 
-sub _get_preload {
+sub _get_preload1 {
     my $pm = shift;
     my $preload = $Preload{$pm} or return();
     if ($preload eq 'sub') {
         $pm =~ s/\.p[mh]$//i;
-        $preload = [ _glob_in_inc($pm, 1) ];
+        return  _glob_in_inc($pm, 1);
     }
     elsif (UNIVERSAL::isa($preload, 'CODE')) {
-        $preload = [ $preload->($pm) ];
+        return $preload->($pm);
     }
-    return $preload;
+    return @$preload;
+}
+
+sub _get_preload {
+    my ($pm, $seen) = @_;
+    $seen ||= {};
+    $seen->{$pm}++;
+    my @preload;
+
+    foreach $pm (_get_preload1($pm))
+    {
+        next if $seen->{$pm};
+        $seen->{$pm}++;
+        push @preload, $pm, _get_preload($pm, $seen);
+    }
+    return @preload;
 }
 
 1;
