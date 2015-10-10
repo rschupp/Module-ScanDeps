@@ -716,12 +716,11 @@ sub scan_deps_static {
 
 sub scan_deps_runtime {
     my %args = (
-        perl => $^X,
         rv   => {},
         (@_ and $_[0] =~ /^(?:$Keys)$/o) ? @_ : (files => [@_], recurse => 1)
     );
-    my ($files, $rv, $execute, $compile, $skip, $perl) =
-      @args{qw( files rv execute compile skip perl )};
+    my ($files, $rv, $execute, $compile) =
+      @args{qw( files rv execute compile )};
 
     $files = (ref($files)) ? $files : [$files];
 
@@ -729,20 +728,15 @@ sub scan_deps_runtime {
         foreach my $file (@$files) {
             next unless $file =~ $ScanFileRE;
 
-            my ($inchash, $dl_shared_objects, $incarray) = ({}, [], []);
-            _compile_or_execute($perl, $file, undef,
-                                $inchash, $dl_shared_objects, $incarray);
-
+            my ($inchash, $dl_shared_objects, $incarray) = _compile_or_execute($file);
             _merge_rv(_make_rv($inchash, $dl_shared_objects, $incarray), $rv);
         }
     }
     elsif ($execute) {
         foreach my $file (@$files) {
             $execute = [] unless ref $execute;  # make sure it's an array ref
-            my ($inchash, $dl_shared_objects, $incarray) = ({}, [], []);
-            _compile_or_execute($perl, $file, $execute,
-                                $inchash, $dl_shared_objects, $incarray);
 
+            my ($inchash, $dl_shared_objects, $incarray) = _compile_or_execute($file, $execute);
             _merge_rv(_make_rv($inchash, $dl_shared_objects, $incarray), $rv);
         }
     }
@@ -1295,26 +1289,26 @@ sub add_preload_rule {
 # compile $file if $execute is undef,
 # otherwise execute $file with arguments @$execute
 sub _compile_or_execute {
-    my ($perl, $file, $execute, $inchash, $dl_shared_objects, $incarray) = @_;
+    my ($file, $execute) = @_;
 
-    my ($fh, $instrumented_file) = File::Temp::tempfile();
+    my ($ih, $instrumented_file) = File::Temp::tempfile(UNLINK => 1);
 
     # spoof $0 (to $file) so that FindBin works as expected
     # NOTE: We don't directly assign to $0 as it has magic (i.e.
     # assigning has side effects and may actually fail, cf. perlvar(1)).
     # Instead we alias *0 to a package variable holding the correct value.
     local $ENV{MSD_ORIGINAL_FILE} = $file;
-    print $fh <<'...';
+    print $ih <<'...';
 BEGIN { my $_0 = $ENV{MSD_ORIGINAL_FILE}; *0 = \$_0; }
 ...
 
-    my (undef, $data_file) = File::Temp::tempfile();
+    my (undef, $data_file) = File::Temp::tempfile(UNLINK => 1);
     local $ENV{MSD_DATA_FILE} = $data_file;
 
     # NOTE: When compiling the block will run as the last CHECK block;
     # when executing the block will run as the first END block and 
     # the programs continues.
-    print $fh $execute ? "END\n" : "CHECK\n", <<'...';
+    print $ih $execute ? "END\n" : "CHECK\n", <<'...';
 {
     # save %INC etc so that requires below don't pollute them
     my %_INC = %INC;
@@ -1400,29 +1394,26 @@ BEGIN { my $_0 = $ENV{MSD_ORIGINAL_FILE}; *0 = \$_0; }
 
     # append the file to compile or execute
     {
-        open my $in, "<", $file or die "Couldn't open $file: $!";
-        print $fh qq[#line 1 "$file"\n], <$in>;
-        close $in;
+        open my $fh, "<", $file or die "Couldn't open $file: $!";
+        print $ih qq[#line 1 "$file"\n], <$fh>;
+        close $fh;
     }
-    close $fh;
+    close $ih;
 
     # run the instrumented file
-    my @cmd = ($perl);
-    push @cmd, "-c" unless $execute;
-    push @cmd, map { "-I$_" } @IncludeLibs;
-    push @cmd, $instrumented_file;
-    push @cmd, @$execute if $execute;
-    my $rc = system(@cmd);
-
-    _extract_info($data_file, $inchash, $dl_shared_objects, $incarray) 
-        if $rc == 0;
-
-    unlink($instrumented_file, $data_file);
+    my $rc = system(
+        $^X,
+        $execute ? () : ("-c"),
+        (map { "-I$_" } @IncludeLibs),
+        $instrumented_file,
+        $execute ? @$execute : ());
 
     die $execute
         ? "SYSTEM ERROR in executing $file @$execute: $rc" 
         : "SYSTEM ERROR in compiling $file: $rc" 
         unless $rc == 0;
+    
+    return _extract_info($data_file);
 }
 
 # create a new hashref, applying fixups
@@ -1465,7 +1456,7 @@ sub _make_rv {
 }
 
 sub _extract_info {
-    my ($fname, $inchash, $dl_shared_objects, $incarray) = @_;
+    my ($fname) = @_;
 
     use vars qw(%inchash @dl_shared_objects @incarray);
 
@@ -1474,9 +1465,10 @@ sub _extract_info {
             $@ || "can't read $fname: $!";
     }
 
-    $inchash->{$_} = $inchash{$_} for keys %inchash;
-    @$dl_shared_objects = @dl_shared_objects;
-    @$incarray          = @incarray;
+    my %ih = %inchash;
+    my @dso = @dl_shared_objects;
+    my @ia = @incarray;
+    return (\%ih, \@dso, \@ia);
 }
 
 sub _gettype {
