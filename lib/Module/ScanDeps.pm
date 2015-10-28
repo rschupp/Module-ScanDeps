@@ -258,9 +258,7 @@ my %Preload = (
     'Catalyst/Engine.pm' => 'sub',
     'CGI/Application/Plugin/Authentication.pm' => [qw( CGI/Application/Plugin/Authentication/Store/Cookie.pm )],
     'CGI/Application/Plugin/AutoRunmode.pm' => [qw( Attribute/Handlers.pm )],
-    'charnames.pm' => sub {
-        _find_in_inc('unicore/Name.pl') ? 'unicore/Name.pl' : 'unicode/Name.pl'
-    },
+    'charnames.pm' => \&_unicore,
     'Class/Load.pm' => [qw( Class/Load/PP.pm )],
     'Class/MakeMethods.pm' => 'sub',
     'Class/MethodMaker.pm' => 'sub',
@@ -495,7 +493,8 @@ my %Preload = (
     'Tk/FBox.pm'        => [qw( Tk/folder.xpm Tk/file.xpm )],
     'Tk/Getopt.pm'      => [qw( Tk/openfolder.xpm Tk/win.xbm )],
     'Tk/Toplevel.pm'    => [qw( Tk/Wm.pm )],
-    'Unicode/UCD.pm'    => [qw( utf8_heavy.pl )],
+    'Unicode/Normalize.pm' => \&_unicore,
+    'Unicode/UCD.pm'    => \&_unicore,
     'URI.pm'            => sub { grep !/urn/, _glob_in_inc('URI', 1) },
     'utf8_heavy.pl'     => \&_unicore,
     'Win32/EventLog.pm'    => [qw( Win32/IPC.pm )],
@@ -1177,7 +1176,7 @@ sub _glob_in_inc {
 
 my $unicore_stuff;
 sub _unicore {
-    $unicore_stuff ||= [ map $_->{name}, _glob_in_inc('unicore', 0) ];
+    $unicore_stuff ||= [ 'utf8_heavy.pl', map $_->{name}, _glob_in_inc('unicore', 0) ];
     return @$unicore_stuff;
 }
 

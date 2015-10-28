@@ -37,8 +37,8 @@
       ...
     );
 
-  scan_deps_static() register a dependency on Bar.pm _and_
-  Quux.pm when it saw "use Foo;" 
+  scan_deps_static() registers a dependency on Bar.pm _and_
+  Quux.pm when it has seen "use Foo;" 
 
 - Minor changes:
   - drop dubious %Preload of utf8.pm for SOAP::Lite and XML::Parser::Expat
