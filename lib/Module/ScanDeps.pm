@@ -1620,8 +1620,7 @@ B<Perl2Exe> by IndigoStar, Inc L<http://www.indigostar.com/>
 
 The B<scan_deps_runtime> function is contributed by Edward S. Peschko.
 
-L<http://par.perl.org/> is the official website for this module.  You
-can write to the mailing list at E<lt>par@perl.orgE<gt>, or send an empty
+You can write to the mailing list at E<lt>par@perl.orgE<gt>, or send an empty
 mail to E<lt>par-subscribe@perl.orgE<gt> to participate in the discussion.
 
 Please submit bug reports to E<lt>bug-Module-ScanDeps@rt.cpan.orgE<gt>.
