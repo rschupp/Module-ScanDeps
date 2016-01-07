@@ -361,9 +361,11 @@ my %Preload = (
         # but accept JSON::XS, too (because JSON.pm might use it if present)
         return( grep /^JSON\/(PP|XS)/, _glob_in_inc('JSON', 1) );
     },
-    'Locale/Maketext/Lexicon.pm'    => 'sub',
+    'List/MoreUtils.pm'         => 'sub',
+    'Locale/Maketext/Lexicon.pm' => 'sub',
     'Locale/Maketext/GutsLoader.pm' => [qw( Locale/Maketext/Guts.pm )],
     'Log/Any.pm'                => 'sub',
+    'Log/Dispatch.pm'           => 'sub',
     'Log/Log4perl.pm'           => 'sub',
     'Log/Report/Dispatcher.pm'  => 'sub',
     'LWP/MediaTypes.pm'         => [qw( LWP/media.types )],
