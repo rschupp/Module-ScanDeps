@@ -1176,6 +1176,33 @@ sub _glob_in_inc {
     return @files;
 }
 
+# like _glob_in_inc, but looks only at the first level
+# (i.e. the children of $subdir)
+# NOTE: File::Find has no public notion of the depth of the traversal
+# in its "wanted" callback, so it's not helpful 
+sub _glob_in_inc_1 {
+    my $subdir  = shift;
+    my $pm_only = shift;
+    my @files;
+
+    $subdir =~ s/\$CurrentPackage/$CurrentPackage/;
+
+    foreach my $inc (grep !/\bBSDPAN\b/, @INC, @IncludeLibs) {
+        my $dir = "$inc/$subdir";
+        next unless -d $dir;
+
+        opendir my $dh, $dir or next; 
+        my @names = map { "$subdir/$_" } grep { -f "$dir/$_" } readdir $dh;
+        closedir $dh;
+
+        push @files, $pm_only
+            ? ( grep { /\.p[mh]$/i } @names )
+            : ( map { { file => "$inc/$_", name => $_ } } @names );
+    }
+
+    return @files;
+}
+
 my $unicore_stuff;
 sub _unicore {
     $unicore_stuff ||= [ 'utf8_heavy.pl', map $_->{name}, _glob_in_inc('unicore', 0) ];
