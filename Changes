@@ -1,3 +1,16 @@
+1.21  2016-04-05
+
+- %Preload: add rules for List::MoreUtils and Log::Dispatch
+
+- %Preload: make the following modules require the unicore stuff:
+  charnames.pm
+  Unicode/Normalize.pm
+  Unicode/UCD.pm
+
+- add helper _glob_in_inc_1()
+
+- remove all references to http://par.perl.org/, doesn't exist anymore
+
 1.20  2015-10-04
 
 - Fix RT #107304: Newer versions of File::Path cause warning "_Inline for _Inline: No such file or directory at Module/ScanDeps.pm line 1339."
