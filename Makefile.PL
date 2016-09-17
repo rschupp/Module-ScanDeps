@@ -4,7 +4,7 @@ use inc::Module::Install 1.00;
 
 name            'Module-ScanDeps';
 all_from        'lib/Module/ScanDeps.pm';
-repository      'https://www.openfoundry.org/svn/par/Module-ScanDeps/trunk';
+repository      'https://github.com/rschupp/Module-ScanDeps',
 license         'perl';
 
 perl_version    '5.008001';
