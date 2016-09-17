@@ -412,6 +412,7 @@ my %Preload = (
     },
     'Module/Implementation.pm'          => \&_warn_of_runtime_loader,
     'Module/Runtime.pm'                 => \&_warn_of_runtime_loader,
+    'Net/DNS/Resolver.pm'               => 'sub',
     'Net/DNS/RR.pm'                     => 'sub',
     'Net/FTP.pm'                        => 'sub',
     'Net/HTTPS.pm'                      => [qw( IO/Socket/SSL.pm Net/SSL.pm )],
