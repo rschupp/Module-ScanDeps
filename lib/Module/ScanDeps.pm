@@ -223,75 +223,77 @@ my %SeenRuntimeLoader;
 
 # Pre-loaded module dependencies {{{
 my %Preload = (
-    'AnyDBM_File.pm'  => [qw( SDBM_File.pm )],
-    'AnyEvent.pm'     => 'sub',
-    'Authen/SASL.pm'  => 'sub',
-    'B/Hooks/EndOfScope.pm' => [qw( B/Hooks/EndOfScope/PP.pm B/Hooks/EndOfScope/XS.pm )],
-    'Bio/AlignIO.pm'  => 'sub',
-    'Bio/Assembly/IO.pm'  => 'sub',
-    'Bio/Biblio/IO.pm'  => 'sub',
-    'Bio/ClusterIO.pm'  => 'sub',
-    'Bio/CodonUsage/IO.pm'  => 'sub',
-    'Bio/DB/Biblio.pm'  => 'sub',
-    'Bio/DB/Flat.pm'  => 'sub',
-    'Bio/DB/GFF.pm'  => 'sub',
-    'Bio/DB/Taxonomy.pm'  => 'sub',
-    'Bio/Graphics/Glyph.pm'  => 'sub',
-    'Bio/MapIO.pm'  => 'sub',
-    'Bio/Matrix/IO.pm'  => 'sub',
-    'Bio/Matrix/PSM/IO.pm'  => 'sub',
-    'Bio/OntologyIO.pm'  => 'sub',
-    'Bio/PopGen/IO.pm'  => 'sub',
-    'Bio/Restriction/IO.pm'  => 'sub',
-    'Bio/Root/IO.pm'  => 'sub',
-    'Bio/SearchIO.pm'  => 'sub',
-    'Bio/SeqIO.pm'  => 'sub',
-    'Bio/Structure/IO.pm'  => 'sub',
-    'Bio/TreeIO.pm'  => 'sub',
-    'Bio/LiveSeq/IO.pm'  => 'sub',
-    'Bio/Variation/IO.pm'  => 'sub',
-    'Catalyst.pm' => sub {
+    'AnyDBM_File.pm'                    => [qw( SDBM_File.pm )],
+    'AnyEvent.pm'                       => 'sub',
+    'Authen/SASL.pm'                    => 'sub',
+    'B/Hooks/EndOfScope.pm'             => 
+        [qw( B/Hooks/EndOfScope/PP.pm B/Hooks/EndOfScope/XS.pm )],
+    'Bio/AlignIO.pm'                    => 'sub',
+    'Bio/Assembly/IO.pm'                => 'sub',
+    'Bio/Biblio/IO.pm'                  => 'sub',
+    'Bio/ClusterIO.pm'                  => 'sub',
+    'Bio/CodonUsage/IO.pm'              => 'sub',
+    'Bio/DB/Biblio.pm'                  => 'sub',
+    'Bio/DB/Flat.pm'                    => 'sub',
+    'Bio/DB/GFF.pm'                     => 'sub',
+    'Bio/DB/Taxonomy.pm'                => 'sub',
+    'Bio/Graphics/Glyph.pm'             => 'sub',
+    'Bio/MapIO.pm'                      => 'sub',
+    'Bio/Matrix/IO.pm'                  => 'sub',
+    'Bio/Matrix/PSM/IO.pm'              => 'sub',
+    'Bio/OntologyIO.pm'                 => 'sub',
+    'Bio/PopGen/IO.pm'                  => 'sub',
+    'Bio/Restriction/IO.pm'             => 'sub',
+    'Bio/Root/IO.pm'                    => 'sub',
+    'Bio/SearchIO.pm'                   => 'sub',
+    'Bio/SeqIO.pm'                      => 'sub',
+    'Bio/Structure/IO.pm'               => 'sub',
+    'Bio/TreeIO.pm'                     => 'sub',
+    'Bio/LiveSeq/IO.pm'                 => 'sub',
+    'Bio/Variation/IO.pm'               => 'sub',
+    'Catalyst.pm'                       => sub {
         return ('Catalyst/Runtime.pm',
                 'Catalyst/Dispatcher.pm',
                 _glob_in_inc('Catalyst/DispatchType', 1));
     },
-    'Catalyst/Engine.pm' => 'sub',
-    'CGI/Application/Plugin/Authentication.pm' => [qw( CGI/Application/Plugin/Authentication/Store/Cookie.pm )],
+    'Catalyst/Engine.pm'                => 'sub',
+    'CGI/Application/Plugin/Authentication.pm' => 
+        [qw( CGI/Application/Plugin/Authentication/Store/Cookie.pm )],
     'CGI/Application/Plugin/AutoRunmode.pm' => [qw( Attribute/Handlers.pm )],
-    'charnames.pm' => \&_unicore,
-    'Class/Load.pm' => [qw( Class/Load/PP.pm )],
-    'Class/MakeMethods.pm' => 'sub',
-    'Class/MethodMaker.pm' => 'sub',
-    'Config/Any.pm' =>'sub',
-    'Crypt/Random.pm' => sub {
+    'charnames.pm'                      => \&_unicore,
+    'Class/Load.pm'                     => [qw( Class/Load/PP.pm )],
+    'Class/MakeMethods.pm'              => 'sub',
+    'Class/MethodMaker.pm'              => 'sub',
+    'Config/Any.pm'                     =>'sub',
+    'Crypt/Random.pm'                   => sub {
         _glob_in_inc('Crypt/Random/Provider', 1);
     },
-    'Crypt/Random/Generator.pm' => sub {
+    'Crypt/Random/Generator.pm'         => sub {
         _glob_in_inc('Crypt/Random/Provider', 1);
     },
-    'Date/Manip.pm' => [qw( Date/Manip/DM5.pm Date/Manip/DM6.pm )],
-    'Date/Manip/Base.pm' => sub {
+    'Date/Manip.pm'                     => 
+        [qw( Date/Manip/DM5.pm Date/Manip/DM6.pm )],
+    'Date/Manip/Base.pm'                => sub {
         _glob_in_inc('Date/Manip/Lang', 1);
     },
-    'Date/Manip/TZ.pm' => sub {
+    'Date/Manip/TZ.pm'                  => sub {
         return (_glob_in_inc('Date/Manip/TZ', 1),
                 _glob_in_inc('Date/Manip/Offset', 1));
     },
     'DateTime/Format/Builder/Parser.pm' => 'sub',
-    'DateTime/Locale.pm' => 'sub',
-    'DateTime/TimeZone.pm' => 'sub',
-    'DBI.pm' => sub {
+    'DateTime/Locale.pm'                => 'sub',
+    'DateTime/TimeZone.pm'              => 'sub',
+    'DBI.pm'                            => sub {
         grep !/\bProxy\b/, _glob_in_inc('DBD', 1);
     },
-    'DBIx/Class.pm' => 'sub',
-    'DBIx/SearchBuilder.pm' => 'sub',
-    'DBIx/Perlish.pm' => [qw( attributes.pm )],
-    'DBIx/ReportBuilder.pm' => 'sub',
-    'Device/ParallelPort.pm' => 'sub',
-    'Device/SerialPort.pm' => [ qw(
-        termios.ph asm/termios.ph sys/termiox.ph sys/termios.ph sys/ttycom.ph
-    ) ],
-    'diagnostics.pm' => sub {
+    'DBIx/Class.pm'                     => 'sub',
+    'DBIx/SearchBuilder.pm'             => 'sub',
+    'DBIx/Perlish.pm'                   => [qw( attributes.pm )],
+    'DBIx/ReportBuilder.pm'             => 'sub',
+    'Device/ParallelPort.pm'            => 'sub',
+    'Device/SerialPort.pm'              => 
+        [qw( termios.ph asm/termios.ph sys/termiox.ph sys/termios.ph sys/ttycom.ph )],
+    'diagnostics.pm'                    => sub {
         # shamelessly taken and adapted from diagnostics.pm
         use Config;
         my($privlib, $archlib) = @Config{qw(privlibexp archlibexp)};
@@ -322,198 +324,198 @@ my %Preload = (
 
         return 'pod/perldiag.pod';
     },
-    'Email/Send.pm' => 'sub',
-    'Event.pm' => [ map "Event/$_.pm", qw(idle io signal timer var)],
-    'ExtUtils/MakeMaker.pm' => sub {
+    'Email/Send.pm'                     => 'sub',
+    'Event.pm'                          => sub {
+        map "Event/$_.pm", qw( idle io signal timer var );
+    },
+    'ExtUtils/MakeMaker.pm'             => sub {
         grep /\bMM_/, _glob_in_inc('ExtUtils', 1);
     },
-    'File/Basename.pm' => [qw( re.pm )],
-    'File/BOM.pm'      => [qw( Encode/Unicode.pm )],
-    'File/HomeDir.pm' => 'sub',
-    'File/Spec.pm'     => sub {
+    'File/Basename.pm'                  => [qw( re.pm )],
+    'File/BOM.pm'                       => [qw( Encode/Unicode.pm )],
+    'File/HomeDir.pm'                   => 'sub',
+    'File/Spec.pm'                      => sub {
         require File::Spec;
         map { my $name = $_; $name =~ s!::!/!g; "$name.pm" } @File::Spec::ISA;
     },
-    'Gtk2.pm' => [qw( Cairo.pm )], # Gtk2.pm does: eval "use Cairo;"
-    'HTTP/Message.pm' => [ qw(
-        URI/URL.pm          URI.pm
-    ) ],
-    'Image/ExifTool.pm' => sub {
+    'Gtk2.pm'                           => [qw( Cairo.pm )], # Gtk2.pm does: eval "use Cairo;"
+    'HTTP/Message.pm'                   => [qw( URI/URL.pm URI.pm )],
+    'Image/ExifTool.pm'                 => sub {
         return(
           (map $_->{name}, _glob_in_inc('Image/ExifTool', 0)), # also *.pl files
           qw( File/RandomAccess.pm ),
         );
     },
-    'Image/Info.pm' => sub {
+    'Image/Info.pm'                     => sub {
         return(
           _glob_in_inc('Image/Info', 1),
           qw( Image/TIFF.pm ),
         );
     },
-    'IO.pm' => [ qw(
+    'IO.pm'                             => [qw(
         IO/Handle.pm        IO/Seekable.pm      IO/File.pm
         IO/Pipe.pm          IO/Socket.pm        IO/Dir.pm
-    ) ],
-    'IO/Socket.pm'     => [qw( IO/Socket/UNIX.pm )],
-    'JSON.pm' => sub {
+    )],
+    'IO/Socket.pm'                      => [qw( IO/Socket/UNIX.pm )],
+    'JSON.pm'                           => sub {
         # add JSON/PP*.pm, JSON/PP/*.pm
         # and ignore other JSON::* modules (e.g. JSON/Syck.pm, JSON/Any.pm);
         # but accept JSON::XS, too (because JSON.pm might use it if present)
         return( grep /^JSON\/(PP|XS)/, _glob_in_inc('JSON', 1) );
     },
-    'List/MoreUtils.pm'         => 'sub',
-    'Locale/Maketext/Lexicon.pm' => 'sub',
-    'Locale/Maketext/GutsLoader.pm' => [qw( Locale/Maketext/Guts.pm )],
-    'Log/Any.pm'                => 'sub',
-    'Log/Dispatch.pm'           => 'sub',
-    'Log/Log4perl.pm'           => 'sub',
-    'Log/Report/Dispatcher.pm'  => 'sub',
-    'LWP/MediaTypes.pm'         => [qw( LWP/media.types )],
-    'LWP/Parallel.pm'           => sub {
+    'List/MoreUtils.pm'                 => 'sub',
+    'Locale/Maketext/Lexicon.pm'        => 'sub',
+    'Locale/Maketext/GutsLoader.pm'     => [qw( Locale/Maketext/Guts.pm )],
+    'Log/Any.pm'                        => 'sub',
+    'Log/Dispatch.pm'                   => 'sub',
+    'Log/Log4perl.pm'                   => 'sub',
+    'Log/Report/Dispatcher.pm'          => 'sub',
+    'LWP/MediaTypes.pm'                 => [qw( LWP/media.types )],
+    'LWP/Parallel.pm'                   => sub {
         _glob_in_inc( 'LWP/Parallel', 1 ),
         qw(
             LWP/ParallelUA.pm       LWP/UserAgent.pm
             LWP/RobotPUA.pm         LWP/RobotUA.pm
         ),
     },
-    'LWP/Parallel/UserAgent.pm' => [qw( LWP/Parallel.pm )],
-    'LWP/UserAgent.pm'          => sub {
+    'LWP/Parallel/UserAgent.pm'         => [qw( LWP/Parallel.pm )],
+    'LWP/UserAgent.pm'                  => sub {
         return( 
           qw( URI/URL.pm URI/http.pm LWP/Protocol/http.pm ),
           _glob_in_inc("LWP/Authen", 1),
           _glob_in_inc("LWP/Protocol", 1),
         );
     },
-    'Mail/Audit.pm'                => 'sub',
-    'Math/BigInt.pm'                => 'sub',
-    'Math/BigFloat.pm'              => 'sub',
-    'Math/Symbolic.pm'              => 'sub',
-    'MIME/Decoder.pm'               => 'sub',
-    'MIME/Types.pm'                 => [qw( MIME/types.db )],
-    'Module/Build.pm'               => 'sub',
-    'Module/Pluggable.pm'           => sub {
+    'Mail/Audit.pm'                     => 'sub',
+    'Math/BigInt.pm'                    => 'sub',
+    'Math/BigFloat.pm'                  => 'sub',
+    'Math/Symbolic.pm'                  => 'sub',
+    'MIME/Decoder.pm'                   => 'sub',
+    'MIME/Types.pm'                     => [qw( MIME/types.db )],
+    'Module/Build.pm'                   => 'sub',
+    'Module/Pluggable.pm'               => sub {
         _glob_in_inc('$CurrentPackage/Plugin', 1);
     },
-    'Moose.pm'                      => sub {
+    'Moose.pm'                          => sub {
         _glob_in_inc('Moose', 1),
         _glob_in_inc('Class/MOP', 1),
     },
-    'MooseX/AttributeHelpers.pm'    => 'sub',
-    'MooseX/POE.pm'                 => sub {
+    'MooseX/AttributeHelpers.pm'        => 'sub',
+    'MooseX/POE.pm'                     => sub {
         _glob_in_inc('MooseX/POE', 1),
         _glob_in_inc('MooseX/Async', 1),
     },
-    'Mozilla/CA.pm'                 => [qw( Mozilla/CA/cacert.pem )],
-    'MozRepl.pm'                    => sub {
+    'Mozilla/CA.pm'                     => [qw( Mozilla/CA/cacert.pem )],
+    'MozRepl.pm'                        => sub {
         qw( MozRepl/Log.pm MozRepl/Client.pm Module/Pluggable/Fast.pm ),
         _glob_in_inc('MozRepl/Plugin', 1),
     },
-    'Module/Implementation.pm'      => \&_warn_of_runtime_loader,
-    'Module/Runtime.pm'             => \&_warn_of_runtime_loader,
-    'Net/DNS/RR.pm'                 => 'sub',
-    'Net/FTP.pm'                    => 'sub',
-    'Net/HTTPS.pm'                  => [qw( IO/Socket/SSL.pm Net/SSL.pm )],
-    'Net/Server.pm'                 => 'sub',
-    'Net/SSH/Perl.pm'               => 'sub',
-    'Package/Stash.pm'              => [qw( Package/Stash/PP.pm Package/Stash/XS.pm )],
-    'Pango.pm'                      => [qw( Cairo.pm )], # Pango.pm does: eval "use Cairo;"
-    'PAR/Repository.pm'             => 'sub',
-    'PAR/Repository/Client.pm'      => 'sub',
-    'Params/Validate.pm'            => 'sub',
-    'Parse/AFP.pm'                  => 'sub',
-    'Parse/Binary.pm'               => 'sub',
-    'PDF/API2/Resource/Font.pm'     => 'sub',
-    'PDF/API2/Basic/TTF/Font.pm'    => sub {
+    'Module/Implementation.pm'          => \&_warn_of_runtime_loader,
+    'Module/Runtime.pm'                 => \&_warn_of_runtime_loader,
+    'Net/DNS/RR.pm'                     => 'sub',
+    'Net/FTP.pm'                        => 'sub',
+    'Net/HTTPS.pm'                      => [qw( IO/Socket/SSL.pm Net/SSL.pm )],
+    'Net/Server.pm'                     => 'sub',
+    'Net/SSH/Perl.pm'                   => 'sub',
+    'Package/Stash.pm'                  => [qw( Package/Stash/PP.pm Package/Stash/XS.pm )],
+    'Pango.pm'                          => [qw( Cairo.pm )], # Pango.pm does: eval "use Cairo;"
+    'PAR/Repository.pm'                 => 'sub',
+    'PAR/Repository/Client.pm'          => 'sub',
+    'Params/Validate.pm'                => 'sub',
+    'Parse/AFP.pm'                      => 'sub',
+    'Parse/Binary.pm'                   => 'sub',
+    'PDF/API2/Resource/Font.pm'         => 'sub',
+    'PDF/API2/Basic/TTF/Font.pm'        => sub {
         _glob_in_inc('PDF/API2/Basic/TTF', 1);
     },
-    'PDF/Writer.pm'                 => 'sub',
-    'PDL/NiceSlice.pm'              => 'sub',
-    'Perl/Critic.pm'                => 'sub', #not only Perl/Critic/Policy
-    'PerlIO.pm'                     => [ 'PerlIO/scalar.pm' ],
-    'Pod/Usage.pm'                  => sub {  # from Pod::Usage (as of 1.61)
+    'PDF/Writer.pm'                     => 'sub',
+    'PDL/NiceSlice.pm'                  => 'sub',
+    'Perl/Critic.pm'                    => 'sub', #not only Perl/Critic/Policy
+    'PerlIO.pm'                         => [ 'PerlIO/scalar.pm' ],
+    'Pod/Usage.pm'                      => sub {  # from Pod::Usage (as of 1.61)
          $] >= 5.005_58 ? 'Pod/Text.pm' : 'Pod/PlainText.pm'
      },
-    'POE.pm'                        => [qw( POE/Kernel.pm POE/Session.pm )],
-    'POE/Component/Client/HTTP.pm'  => sub {
+    'POE.pm'                            => [qw( POE/Kernel.pm POE/Session.pm )],
+    'POE/Component/Client/HTTP.pm'      => sub {
         _glob_in_inc('POE/Component/Client/HTTP', 1),
         qw( POE/Filter/HTTPChunk.pm POE/Filter/HTTPHead.pm ),
     },
-    'POE/Kernel.pm'                 => sub {
+    'POE/Kernel.pm'                     => sub {
         _glob_in_inc('POE/XS/Resource', 1),
         _glob_in_inc('POE/Resource', 1),
         _glob_in_inc('POE/XS/Loop', 1),
         _glob_in_inc('POE/Loop', 1),
     },
-    'POSIX.pm'                      => sub {
+    'POSIX.pm'                          => sub {
         map $_->{name},
           _glob_in_inc('auto/POSIX/SigAction', 0),      # *.al files
           _glob_in_inc('auto/POSIX/SigRt', 0),          # *.al files
     },
-    'PPI.pm'                        => 'sub',
-    'Regexp/Common.pm'              => 'sub',
-    'RPC/XML/ParserFactory.pm'      => sub {
+    'PPI.pm'                            => 'sub',
+    'Regexp/Common.pm'                  => 'sub',
+    'RPC/XML/ParserFactory.pm'          => sub {
         _glob_in_inc('RPC/XML/Parser', 1);
     },
-    'SerialJunk.pm' => [ qw(
+    'SerialJunk.pm'                     => [qw(
         termios.ph asm/termios.ph sys/termiox.ph sys/termios.ph sys/ttycom.ph
-    ) ],
-    'SOAP/Lite.pm'                  => sub {
+    )],
+    'SOAP/Lite.pm'                      => sub {
         _glob_in_inc('SOAP/Transport', 1),
         _glob_in_inc('SOAP/Lite', 1),
     },
-    'Socket/GetAddrInfo.pm'         => 'sub',
-    'SQL/Parser.pm' => sub {
+    'Socket/GetAddrInfo.pm'             => 'sub',
+    'SQL/Parser.pm'                     => sub {
         _glob_in_inc('SQL/Dialects', 1);
     },
-    'SQL/Translator/Schema.pm' => sub {
+    'SQL/Translator/Schema.pm'          => sub {
         _glob_in_inc('SQL/Translator', 1);
     },
-    'Sub/Exporter/Progressive.pm'   => [qw( Sub/Exporter.pm )],
-    'SVK/Command.pm' => sub {
+    'Sub/Exporter/Progressive.pm'       => [qw( Sub/Exporter.pm )],
+    'SVK/Command.pm'                    => sub {
         _glob_in_inc('SVK', 1);
     },
-    'SVN/Core.pm' => sub {
+    'SVN/Core.pm'                       => sub {
         _glob_in_inc('SVN', 1),
         map $_->{name}, _glob_in_inc('auto/SVN', 0),    # *.so, *.bs files
     },
-    'Template.pm'      => 'sub',
-    'Term/ReadLine.pm' => 'sub',
-    'Test/Deep.pm'     => 'sub',
-    'threads/shared.pm' => [qw( attributes.pm )],
+    'Template.pm'                       => 'sub',
+    'Term/ReadLine.pm'                  => 'sub',
+    'Test/Deep.pm'                      => 'sub',
+    'threads/shared.pm'                 => [qw( attributes.pm )],
     # anybody using threads::shared is likely to declare variables
     # with attribute :shared
-    'Tk.pm'            => sub {
+    'Tk.pm'                             => sub {
         $SeenTk = 1;
         qw( Tk/FileSelect.pm Encode/Unicode.pm );
     },
-    'Tk/Balloon.pm'     => [qw( Tk/balArrow.xbm )],
-    'Tk/BrowseEntry.pm' => [qw( Tk/cbxarrow.xbm Tk/arrowdownwin.xbm )],
-    'Tk/ColorEditor.pm' => [qw( Tk/ColorEdit.xpm )],
-    'Tk/DragDrop/Common.pm' => sub {
+    'Tk/Balloon.pm'                     => [qw( Tk/balArrow.xbm )],
+    'Tk/BrowseEntry.pm'                 => [qw( Tk/cbxarrow.xbm Tk/arrowdownwin.xbm )],
+    'Tk/ColorEditor.pm'                 => [qw( Tk/ColorEdit.xpm )],
+    'Tk/DragDrop/Common.pm'             => sub {
         _glob_in_inc('Tk/DragDrop', 1),
     },
-    'Tk/FBox.pm'        => [qw( Tk/folder.xpm Tk/file.xpm )],
-    'Tk/Getopt.pm'      => [qw( Tk/openfolder.xpm Tk/win.xbm )],
-    'Tk/Toplevel.pm'    => [qw( Tk/Wm.pm )],
-    'Unicode/Normalize.pm' => \&_unicore,
-    'Unicode/UCD.pm'    => \&_unicore,
-    'URI.pm'            => sub { grep !/urn/, _glob_in_inc('URI', 1) },
-    'utf8_heavy.pl'     => \&_unicore,
-    'Win32/EventLog.pm'    => [qw( Win32/IPC.pm )],
-    'Win32/Exe.pm'         => 'sub',
-    'Win32/TieRegistry.pm' => [qw( Win32API/Registry.pm )],
-    'Win32/SystemInfo.pm'  => [qw( Win32/cpuspd.dll )],
-    'Wx.pm'                => [qw( attributes.pm )],
-    'XML/Parser.pm'        => sub {
+    'Tk/FBox.pm'                        => [qw( Tk/folder.xpm Tk/file.xpm )],
+    'Tk/Getopt.pm'                      => [qw( Tk/openfolder.xpm Tk/win.xbm )],
+    'Tk/Toplevel.pm'                    => [qw( Tk/Wm.pm )],
+    'Unicode/Normalize.pm'              => \&_unicore,
+    'Unicode/UCD.pm'                    => \&_unicore,
+    'URI.pm'                            => sub { grep !/urn/, _glob_in_inc('URI', 1) },
+    'utf8_heavy.pl'                     => \&_unicore,
+    'Win32/EventLog.pm'                 => [qw( Win32/IPC.pm )],
+    'Win32/Exe.pm'                      => 'sub',
+    'Win32/TieRegistry.pm'              => [qw( Win32API/Registry.pm )],
+    'Win32/SystemInfo.pm'               => [qw( Win32/cpuspd.dll )],
+    'Wx.pm'                             => [qw( attributes.pm )],
+    'XML/Parser.pm'                     => sub {
         _glob_in_inc('XML/Parser/Style', 1),
         _glob_in_inc('XML/Parser/Encodings', 1),
     },
-    'XML/SAX.pm' => [qw( XML/SAX/ParserDetails.ini ) ],
-    'XMLRPC/Lite.pm' => sub {
-        _glob_in_inc('XMLRPC/Transport', 1),;
+    'XML/SAX.pm'                        => [qw( XML/SAX/ParserDetails.ini ) ],
+    'XMLRPC/Lite.pm'                    => sub {
+        _glob_in_inc('XMLRPC/Transport', 1);
     },
-    'YAML.pm'           => [qw( YAML/Loader.pm YAML/Dumper.pm )],
-    'YAML/Any.pm'       => sub { 
+    'YAML.pm'                           => [qw( YAML/Loader.pm YAML/Dumper.pm )],
+    'YAML/Any.pm'                       => sub { 
         # try to figure out what YAML::Any would have used
         my $impl = eval "use YAML::Any; YAML::Any->implementation;";
         unless ($@) 
