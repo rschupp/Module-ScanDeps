@@ -1,3 +1,9 @@
+1.23  2016-11-16
+
+- add %Preload rules for List::SomeUtils and Pod::Simple::Transcode
+
+- get rid of Module::Install, use ExtUtils::MakeMaker
+    
 1.22  2016-09-17
 
 - Fix RT#117887: Not parsing new release of Net::DNS::Resolver
