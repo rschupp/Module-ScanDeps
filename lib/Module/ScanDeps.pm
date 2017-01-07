@@ -281,6 +281,7 @@ my %Preload = (
                 _glob_in_inc('Date/Manip/Offset', 1));
     },
     'DateTime/Format/Builder/Parser.pm' => 'sub',
+    'DateTime/Format/Natural.pm'        => 'sub',
     'DateTime/Locale.pm'                => 'sub',
     'DateTime/TimeZone.pm'              => 'sub',
     'DBI.pm'                            => sub {
