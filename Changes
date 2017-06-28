@@ -1,3 +1,11 @@
+1.24  2017-06-28
+
+- Merge pull request from Salvador Fandiño (salva), thx!
+  Specio::PartialDump uses unicore
+    
+- Fix RT#119737: Problems with detecting DateTime::Format::Natural dependencies
+  ... by adding a %Preload rule
+
 1.23  2016-11-16
 
 - add %Preload rules for List::SomeUtils and Pod::Simple::Transcode
