@@ -468,6 +468,7 @@ my %Preload = (
         _glob_in_inc('SOAP/Lite', 1),
     },
     'Socket/GetAddrInfo.pm'             => 'sub',
+    'Specio/PartialDump.pm'             => \&_unicore,
     'SQL/Parser.pm'                     => sub {
         _glob_in_inc('SQL/Dialects', 1);
     },
