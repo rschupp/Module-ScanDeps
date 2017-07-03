@@ -805,14 +805,13 @@ sub scan_line {
         if (/^package\s+(\w+)/) {
             $CurrentPackage = $1;
             $CurrentPackage =~ s{::}{/}g;
-            return;
+            next CHUNK;
         }
         # use VERSION:
         if (/^(?:use|require)\s+v?(\d[\d\._]*)/) {
           # include feature.pm if we have 5.9.5 or better
           if (version->new($1) >= version->new("5.9.5")) {
               # seems to catch 5.9, too (but not 5.9.4)
-            #return "feature.pm";
             $found{"feature.pm"}++;
             next CHUNK;
           }
@@ -849,7 +848,6 @@ sub scan_line {
                 return if $@ or !defined $module;
             };
             $module =~ s{::}{/}g;
-            #return ("$pragma.pm", "$module.pm");
             $found{"$pragma.pm"}++;
             $found{"$module.pm"}++;
             next CHUNK;
@@ -868,7 +866,7 @@ sub scan_line {
                     unshift(@INC, $_) if -d $_;
                 }
             }
-            next;
+            next CHUNK;
         }
 
         $found{$_}++ for scan_chunk($_);
