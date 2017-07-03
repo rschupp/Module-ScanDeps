@@ -849,7 +849,10 @@ sub scan_line {
                 return if $@ or !defined $module;
             };
             $module =~ s{::}{/}g;
-            return ("$pragma.pm", "$module.pm");
+            #return ("$pragma.pm", "$module.pm");
+            $found{"$pragma.pm"}++;
+            $found{"$module.pm"}++;
+            next CHUNK;
         }
 
         if (my ($how, $libs) = /^(use \s+ lib \s+ | (?:unshift|push) \s+ \@INC \s+ ,) (.+)/x)
