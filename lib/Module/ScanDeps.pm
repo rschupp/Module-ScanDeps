@@ -798,6 +798,7 @@ sub scan_line {
     $line =~ s/\s*#.*$//;
     $line =~ s/[\\\/]+/\//g;
 
+  CHUNK:
     foreach (split(/;/, $line)) {
         s/^\s*//;
 
@@ -811,7 +812,9 @@ sub scan_line {
           # include feature.pm if we have 5.9.5 or better
           if (version->new($1) >= version->new("5.9.5")) {
               # seems to catch 5.9, too (but not 5.9.4)
-            return "feature.pm";
+            #return "feature.pm";
+            $found{"feature.pm"}++;
+            next CHUNK;
           }
         }
 
