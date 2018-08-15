@@ -737,16 +737,14 @@ sub scan_deps_runtime {
         foreach my $file (@$files) {
             next unless $file =~ $ScanFileRE;
 
-            my ($inchash, $dl_shared_objects, $incarray) = _compile_or_execute($file);
-            _merge_rv(_make_rv($inchash, $dl_shared_objects, $incarray), $rv);
+            _merge_rv(_info2rv(_compile_or_execute($file)), $rv);
         }
     }
     elsif ($execute) {
         foreach my $file (@$files) {
             $execute = [] unless ref $execute;  # make sure it's an array ref
 
-            my ($inchash, $dl_shared_objects, $incarray) = _compile_or_execute($file, $execute);
-            _merge_rv(_make_rv($inchash, $dl_shared_objects, $incarray), $rv);
+            _merge_rv(_info2rv(_compile_or_execute($file, $execute)), $rv);
         }
     }
 
@@ -1331,24 +1329,27 @@ sub add_preload_rule {
 sub _compile_or_execute {
     my ($file, $execute) = @_;
 
+    local $ENV{MSD_ORIGINAL_FILE} = $file;
+
     my ($ih, $instrumented_file) = File::Temp::tempfile(UNLINK => 1);
+
+    my (undef, $data_file) = File::Temp::tempfile(UNLINK => 1);
+    local $ENV{MSD_DATA_FILE} = $data_file;
 
     # spoof $0 (to $file) so that FindBin works as expected
     # NOTE: We don't directly assign to $0 as it has magic (i.e.
     # assigning has side effects and may actually fail, cf. perlvar(1)).
     # Instead we alias *0 to a package variable holding the correct value.
-    local $ENV{MSD_ORIGINAL_FILE} = $file;
     print $ih <<'...';
 BEGIN { my $_0 = $ENV{MSD_ORIGINAL_FILE}; *0 = \$_0; }
 ...
 
-    my (undef, $data_file) = File::Temp::tempfile(UNLINK => 1);
-    local $ENV{MSD_DATA_FILE} = $data_file;
-
     # NOTE: When compiling the block will run as the last CHECK block;
     # when executing the block will run as the first END block and 
     # the programs continues.
-    print $ih $execute ? "END\n" : "CHECK\n", <<'...';
+    print $ih 
+        $execute ? "END\n" : "CHECK\n", 
+        <<'...';
 {
     # save %INC etc so that requires below don't pollute them
     my %_INC = %INC;
@@ -1359,7 +1360,6 @@ BEGIN { my $_0 = $ENV{MSD_ORIGINAL_FILE}; *0 = \$_0; }
     require Cwd;
     require DynaLoader;
     require Data::Dumper;
-    require B; 
     require Config;
 
     while (my ($k, $v) = each %_INC)
@@ -1387,17 +1387,20 @@ BEGIN { my $_0 = $ENV{MSD_ORIGINAL_FILE}; *0 = \$_0; }
     @_INC = grep { !ref $_ } @_INC;
 
     my $dlext = $Config::Config{dlext};
-    my @so = grep { defined $_ && -e $_ } Module::ScanDeps::DataFeed::_dl_shared_objects();
-    my @bs = @so;
-    my @shared_objects = ( @so, grep { s/\Q.$dlext\E$/\.bs/ && -e $_ } @bs );
+    my @dlls = grep { defined $_ && -e $_ } Module::ScanDeps::DataFeed::_dl_shared_objects();
+    my @shared_objects = @dlls; 
+    push @shared_objects, grep { s/\Q.$dlext\E$/\.bs/ && -e $_ } @dlls;
 
+    # write data file
     my $data_file = $ENV{MSD_DATA_FILE};
     open my $fh, ">", $data_file 
         or die "Couldn't open $data_file: $!\n";
-    print $fh Data::Dumper->Dump(
-                  [    \%_INC,  \@_INC,   \@shared_objects    ], 
-                  [qw( *inchash *incarray *dl_shared_objects )]);
-    print $fh "1;\n";
+    print $fh Data::Dumper::Dumper(
+    {
+        '%INC'            => \%_INC,
+        '@INC'            => \@_INC,
+        dl_shared_objects => \@shared_objects,
+    });
     close $fh;
 
     sub Module::ScanDeps::DataFeed::_dl_shared_objects {
@@ -1453,62 +1456,51 @@ BEGIN { my $_0 = $ENV{MSD_ORIGINAL_FILE}; *0 = \$_0; }
         : "SYSTEM ERROR in compiling $file: $rc" 
         unless $rc == 0;
     
-    return _extract_info($data_file);
+    my $info = do $data_file 
+        or die "error extracting info from -c/-x file: ", ($@ || "can't read $data_file: $!");
+
+    return $info;
 }
 
 # create a new hashref, applying fixups
-sub _make_rv {
-    my ($inchash, $dl_shared_objects, $inc_array) = @_;
+sub _info2rv {
+    my ($info) = @_;
 
     my $rv = {};
-    my @newinc = map(quotemeta($_), @$inc_array);
-    my $inc = join('|', sort { length($b) <=> length($a) } @newinc);
-    # don't pack lib/c:/ or lib/C:/
-    $inc = qr/$inc/i if(is_insensitive_fs());
+
+    my $incs = join('|', sort { length($b) <=> length($a) } 
+                              map { s:\\:/:g; quotemeta($_) } @{ $info->{'@INC'} });
+    my $i = is_insensitive_fs() ? "i" : "";
+    my $strip_inc_prefix = qr{^(?$i:$incs)/};
 
     require File::Spec;
 
-    foreach my $key (keys(%$inchash)) {
-        my $newkey = $key;
-        $newkey =~ s"^(?:(?:$inc)/?)""sg if File::Spec->file_name_is_absolute($newkey);
+    while (my ($key, $path) = each %{ $info->{'%INC'} }) {
+        $path =~ s:\\:/:g;
+        $key =~ s:\\:/:g;
+        $key =~ s/$strip_inc_prefix// if File::Spec->file_name_is_absolute($key);
 
-        $rv->{$newkey} = {
+        $rv->{$key} = {
             'used_by' => [],
-            'file'    => $inchash->{$key},
-            'type'    => _gettype($inchash->{$key}),
+            'file'    => $path,
+            'type'    => _gettype($path),
             'key'     => $key
         };
     }
 
-    foreach my $dl_file (@$dl_shared_objects) {
-        my $key = $dl_file;
-        $key =~ s"^(?:(?:$inc)/?)""s;
+    foreach my $path (@{ $info->{dl_shared_objects} }) {
+        $path =~ s:\\:/:g;
+        (my $key = $path) =~ s/$strip_inc_prefix//;
 
         $rv->{$key} = {
             'used_by' => [],
-            'file'    => $dl_file,
+            'file'    => $path,
             'type'    => 'shared',
             'key'     => $key
         };
     }
 
     return $rv;
-}
-
-sub _extract_info {
-    my ($fname) = @_;
-
-    use vars qw(%inchash @dl_shared_objects @incarray);
-
-    unless (do $fname) {
-        die "error extracting info from DataFeed file: ",
-            $@ || "can't read $fname: $!";
-    }
-
-    my %ih = %inchash;
-    my @dso = @dl_shared_objects;
-    my @ia = @incarray;
-    return (\%ih, \@dso, \@ia);
 }
 
 sub _gettype {
