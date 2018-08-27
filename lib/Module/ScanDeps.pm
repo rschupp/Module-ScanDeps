@@ -332,9 +332,9 @@ my %Preload = (
     'ExtUtils/MakeMaker.pm'             => sub {
         grep /\bMM_/, _glob_in_inc('ExtUtils', 1);
     },
-    'FFI/Platypus'                      => 'sub',
+    'FFI/Platypus.pm'                   => 'sub',
     'File/Basename.pm'                  => [qw( re.pm )],
-    'File/BOM.pm'                       => [qw( Encode/Unicode.pm )],
+    'File/BOM.pm'                       => [qw( Encode/Unicode.pm PerlIO/via.pm )],
     'File/HomeDir.pm'                   => 'sub',
     'File/Spec.pm'                      => sub {
         require File::Spec;
