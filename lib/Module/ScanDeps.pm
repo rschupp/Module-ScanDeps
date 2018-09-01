@@ -366,6 +366,9 @@ my %Preload = (
         # but accept JSON::XS, too (because JSON.pm might use it if present)
         return( grep /^JSON\/(PP|XS)/, _glob_in_inc('JSON', 1) );
     },
+    'JSON/MaybeXS.pm'                   => [qw(
+        Cpanel/JSON/XS.pm JSON/XS.pm JSON/PP.pm 
+    )],
     'List/MoreUtils.pm'                 => 'sub',
     'List/SomeUtils.pm'                 => 'sub',
     'Locale/Maketext/Lexicon.pm'        => 'sub',
