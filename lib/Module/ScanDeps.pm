@@ -341,6 +341,7 @@ my %Preload = (
         map { my $name = $_; $name =~ s!::!/!g; "$name.pm" } @File::Spec::ISA;
     },
     'Gtk2.pm'                           => [qw( Cairo.pm )], # Gtk2.pm does: eval "use Cairo;"
+    'HTTP/Entity/Parser.pm'             => 'sub',
     'HTTP/Message.pm'                   => [qw( URI/URL.pm URI.pm )],
     'Image/ExifTool.pm'                 => sub {
         return(
