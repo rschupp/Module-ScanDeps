@@ -1635,6 +1635,10 @@ scripts that contains prerequisite modules; this module supports two
 such projects, L<PAR> and L<App::Packer>.  Please see their respective
 documentations on CPAN for further information.
 
+Other modules which accomplish the same goal with different approach:
+L<Module::ExtractUse>, L<Perl::PrereqScanner>, L<Perl::PrereqScanner::Lite>,
+L<Perl::PrereqScanner::NotQuiteLite>.
+
 =head1 AUTHORS
 
 Audrey Tang E<lt>cpan@audreyt.orgE<gt>
