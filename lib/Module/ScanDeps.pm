@@ -11,8 +11,6 @@ $VERSION   = '1.26';
 use Config;
 require Exporter;
 our @ISA = qw(Exporter);
-use constant dl_ext  => ".$Config{dlext}";
-use constant lib_ext => $Config{lib_ext};
 use constant is_insensitive_fs => (
     -s $0 
         and (-s lc($0) || -1) == (-s uc($0) || -1)
@@ -1112,15 +1110,8 @@ sub add_deps {
 
             foreach (_glob_in_inc("auto/$path")) {
                 next if $_->{file} =~ m{\bauto/$path/.*/};  # weed out subdirs
-                next if $_->{name} =~ m{/\.(?:exists|packlist)$};
-                my ($ext,$type);
-                $ext = lc($1) if $_->{name} =~ /(\.[^.]+)$/;
-                if (defined $ext) {
-                    next if $ext eq lc(lib_ext());
-                    $type = 'shared' if $ext eq lc(dl_ext());
-                    $type = 'autoload' if ($ext eq '.ix' or $ext eq '.al');
-                }
-                $type ||= 'data';
+                next if $_->{name} =~ m{/(?:\.exists|\.packlist|\Q$Config{lib_ext}\E)$};
+                $type = _gettype($_->{name});
 
                 _add_info( rv     => $rv,        module  => $_->{name},
                            file   => $_->{file}, used_by => $module,
@@ -1390,7 +1381,7 @@ BEGIN { my $_0 = $ENV{MSD_ORIGINAL_FILE}; *0 = \$_0; }
     # drop refs from @_INC
     @_INC = grep { !ref $_ } @_INC;
 
-    my $dlext = $Config::Config{dlext};
+    my $dlext = $Config{dlext};
     my @dlls = grep { defined $_ && -e $_ } Module::ScanDeps::DataFeed::_dl_shared_objects();
     my @shared_objects = @dlls; 
     push @shared_objects, grep { s/\Q.$dlext\E$/\.bs/ && -e $_ } @dlls;
@@ -1423,7 +1414,6 @@ BEGIN { my $_0 = $ENV{MSD_ORIGINAL_FILE}; *0 = \$_0; }
         return if $mod eq 'B';
         return unless defined &{"$mod\::bootstrap"};
 
-        my $dl_ext = $Config::Config{dlext};
 
         # cf. DynaLoader.pm
         my @modparts = split(/::/, $mod);
@@ -1431,7 +1421,7 @@ BEGIN { my $_0 = $ENV{MSD_ORIGINAL_FILE}; *0 = \$_0; }
         my $modpname = join('/', @modparts);
 
         foreach my $dir (@_INC) {
-            my $file = "$dir/auto/$modpname/$modfname.$dl_ext";
+            my $file = "$dir/auto/$modpname/$modfname.$Config{dlext}";
             return $file if -r $file;
         }
         return;
@@ -1509,11 +1499,10 @@ sub _info2rv {
 
 sub _gettype {
     my $name = shift;
-    my $dlext = quotemeta(dl_ext());
 
-    return 'autoload' if $name =~ /(?:\.ix|\.al)$/i;
+    return 'autoload' if $name =~ /\.(?:ix|al|bs)$/i;
     return 'module'   if $name =~ /\.p[mh]$/i;
-    return 'shared'   if $name =~ /\.$dlext$/i;
+    return 'shared'   if $name =~ /\.\Q$Config{dlext}\E$/i;
     return 'data';
 }
 
