@@ -802,6 +802,8 @@ sub scan_line {
   CHUNK:
     foreach (split(/;/, $line)) {
         s/^\s*//;
+        s/^\{\s*//;  #  handle single line blocks like { package foo; use xx; }
+        s/\}$//;
 
         if (/^package\s+(\w+)/) {
             $CurrentPackage = $1;
@@ -915,6 +917,8 @@ sub scan_chunk {
     my $module = eval {
         $_ = $chunk;
         s/^\s*//;
+        s/^\{\s*//;  #  handle single line blocks like { package foo; use xx; }
+        s/\}$//;
 
         # TODO: There's many more of these "loader" type modules on CPAN!
         # scan for the typical module-loader modules
