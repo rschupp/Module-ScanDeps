@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 9;
+use Test::More tests => 11;
 use Module::ScanDeps qw/scan_line/;
 
 {
@@ -77,4 +77,16 @@ is_deeply(\@array,[sort qw{if.pm warnings.pm}]);
 my $chunk= "{ use if 1, 'warnings' }";
 my @array=sort(scan_line($chunk));
 is_deeply(\@array,[sort qw{if.pm warnings.pm}]);
+}
+
+{
+my $chunk= " do { use if 1, 'warnings' }";
+my @array=sort(scan_line($chunk));
+is_deeply(\@array,[sort qw{if.pm warnings.pm}]);
+}
+
+{
+my $chunk= " do { use foo }";
+my @array=sort(scan_line($chunk));
+is_deeply(\@array,[sort qw{foo.pm}]);
 }
