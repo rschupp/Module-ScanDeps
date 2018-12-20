@@ -12,7 +12,7 @@ use Data::Dumper;
 plan skip_all => "No dynamic loading available in your version of perl"
     unless $Config::Config{usedl};
 
-my @try_mods = qw( Cwd File::Glob Data::Dumper List::Util Time::HiRes Compress::Raw::Zlib );
+my @try_mods = qw( File::Glob Data::Dumper List::Util Time::HiRes Compress::Raw::Zlib );
 my @dyna_mods = grep { my $mod = $_; 
                        eval("require $mod; 1") 
                        && grep { $_ eq $mod } @DynaLoader::dl_modules
