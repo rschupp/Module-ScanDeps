@@ -1202,7 +1202,7 @@ sub _glob_in_inc_1 {
         my $dir = "$inc/$subdir";
         next unless -d $dir;
 
-        opendir my $dh, $dir or next; 
+        opendir(my $dh, $dir) or next; 
         my @names = map { "$subdir/$_" } grep { -f "$dir/$_" } readdir $dh;
         closedir $dh;
 
