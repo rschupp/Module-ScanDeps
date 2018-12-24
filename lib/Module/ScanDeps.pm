@@ -1106,22 +1106,19 @@ sub add_deps {
             next;
         }
 
-        my $type = _gettype($file);
         _add_info( rv     => $rv,   module  => $module,
                    file   => $file, used_by => $used_by,
-                   type   => $type );
+                   type   => _gettype($file) );
 
-        if ($module =~ /(.*?([^\/]*))\.p[mh]$/i) {
-            my ($path, $basename) = ($1, $2);
+        if ((my $path = $module) =~ s/\.p[mh]$//i) {
 
             foreach (_glob_in_inc("auto/$path")) {
-                next if $_->{file} =~ m{\bauto/$path/.*/};  # weed out subdirs
-                next if $_->{name} =~ m{/(?:\.exists|\.packlist|\Q$Config{lib_ext}\E)$};
-                $type = _gettype($_->{name});
+                next if $_->{name} =~ m{^auto/$path/.*/};  # weed out subdirs
+                next if $_->{name} =~ m{/(?:\.exists|\.packlist)$|\Q$Config{lib_ext}\E$};
 
                 _add_info( rv     => $rv,        module  => $_->{name},
                            file   => $_->{file}, used_by => $module,
-                           type   => $type );
+                           type   => _gettype($_->{name}) );
             }
 
             ### Now, handle module and distribution share dirs
@@ -1352,16 +1349,18 @@ BEGIN { my $_0 = $ENV{MSD_ORIGINAL_FILE}; *0 = \$_0; }
         $execute ? "END\n" : "CHECK\n", 
         <<'...';
 {
-    # save %INC etc so that requires below don't pollute them
-    my %_INC = %INC;
-    my @_INC = @INC;
+    require DynaLoader;
     my @_dl_shared_objects = @DynaLoader::dl_shared_objects;
     my @_dl_modules = @DynaLoader::dl_modules;
 
+    # save %INC etc so that requires below don't pollute them
+    my %_INC = %INC;
+    my @_INC = @INC;
+
     require Cwd;
-    require DynaLoader;
     require Data::Dumper;
     require Config;
+    my $dlext = $Config::Config{dlext};
 
     while (my ($k, $v) = each %_INC)
     {
@@ -1387,10 +1386,9 @@ BEGIN { my $_0 = $ENV{MSD_ORIGINAL_FILE}; *0 = \$_0; }
     # drop refs from @_INC
     @_INC = grep { !ref $_ } @_INC;
 
-    my $dlext = $Config{dlext};
     my @dlls = grep { defined $_ && -e $_ } Module::ScanDeps::DataFeed::_dl_shared_objects();
     my @shared_objects = @dlls; 
-    push @shared_objects, grep { s/\Q.$dlext\E$/\.bs/ && -e $_ } @dlls;
+    push @shared_objects, grep { s/\.\Q$dlext\E$/.bs/ && -e $_ } @dlls;
 
     # write data file
     my $data_file = $ENV{MSD_DATA_FILE};
@@ -1427,8 +1425,8 @@ BEGIN { my $_0 = $ENV{MSD_ORIGINAL_FILE}; *0 = \$_0; }
         my $modpname = join('/', @modparts);
 
         foreach my $dir (@_INC) {
-            my $file = "$dir/auto/$modpname/$modfname.$Config{dlext}";
-            return $file if -r $file;
+            my $file = "$dir/auto/$modpname/$modfname.$dlext";
+            return $file if -e $file;
         }
         return;
     }
