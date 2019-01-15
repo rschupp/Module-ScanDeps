@@ -7,6 +7,7 @@ use Config;
 use Getopt::Long qw(:config bundling no_ignore_case);
 use Module::ScanDeps;
 use ExtUtils::MakeMaker;
+use File::Find;
 use subs qw( _name _modtree );
 
 my $usage = "Usage: $0 [ -B ] [ -V ] [ -T ] [ -x [ --xargs STRING ] | -c ] [ -R ] [-C FILE ] [ -e STRING | FILE ... ]\n";
@@ -26,7 +27,8 @@ GetOptions(\%opts,
     "like-cpanfile",
     "save-cpanfile",
     "no-versions",
-    "force"
+    "force",
+    "files-from-workdir",
 ) or die $usage;
 
 die 'Use `--save-cpanfile` only with  `--like-cpanfile` option' if ($opts{'save-cpanfile'} and not $opts{'like-cpanfile'});
@@ -38,6 +40,19 @@ my $verbose = $opts{V};
 my $eval    = $opts{e};
 my $recurse = $opts{R} ? 0 : 1;
 my $modtree = {} unless $opts{T}; # i.e. disable it unless explicitly requested
+
+if($opts{'files-from-workdir'}) { #todo make custom filemask
+    # use lib 'lib';
+    finddepth({
+        wanted => sub { push @ARGV, $_ if /\.pl$/ },
+        no_chdir => 1,
+    }, 'bin');
+
+    finddepth({
+        wanted => sub { push @ARGV, $_ if /\.pm$/ },
+        no_chdir => 1,
+    }, 'lib');
+}
 
 if ($eval) {
     require File::Temp;
@@ -260,6 +275,12 @@ Retrieves module information from CPAN if you have B<CPANPLUS> installed.
 
 no-versions
 force
+
+=item B<--files-from-workdir>
+
+Finds *.pm files from C<$PWD/lib> and *.pl files from C<$PWD/bin>.
+
+=back
 
 =item B<-m>, B<--include-missing>
 
