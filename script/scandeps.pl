@@ -22,6 +22,8 @@ GetOptions(\%opts,
     "T|modtree",
     "V|verbose",
     "x|execute",
+    "m|include-missing",
+    "like-cpanfile",
 ) or die $usage;
 
 my (%map, %skip);
@@ -59,8 +61,8 @@ my $map = scan_deps(
     $opts{c} ? ( compile => 1 ) : (),
     $opts{V} ? ( warn_missing => 1 ) : (),
     $opts{C} ? ( cache_file   => $opts{C}) : (),
+    $opts{m} ? ( include_missing => $opts{m}) : (),
 );
-
 
 my $len = 0;
 my @todo;
@@ -79,7 +81,11 @@ foreach my $key (sort keys %$map) {
         $bin{$key}++;
     }
 
-    next unless $mod->{type} eq 'module';
+    # warn $mod->{type};
+    if($mod->{type} ne 'module') {
+        if ($opts{m}) { next if $mod->{type} ne 'missing'; }
+        else          { next }
+    }
 
     next if $skip{$name};
 
@@ -108,8 +114,9 @@ $len += 2;
 print "#\n# Legend: [C]ore [X]ternal [S]ubmodule [?]NotOnCPAN\n" if $verbose;
 
 foreach my $mod (sort { $a->{name} cmp $b->{name} } @todo ) {
-    my $version = MM->parse_version($mod->{file});
-
+    # warn Dumper $mod;
+    my $version = ($opts{m} and $mod->{type} eq 'missing') ? 0 : MM->parse_version($mod->{file});
+    # warn $version;
     if (!$verbose) {
         printf "%-${len}s => '$version',", "'$mod->{name}'" if $version;
     } else {
