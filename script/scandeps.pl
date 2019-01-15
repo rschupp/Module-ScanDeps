@@ -24,6 +24,7 @@ GetOptions(\%opts,
     "x|execute",
     "m|include-missing",
     "like-cpanfile",
+    'no-versions',
 ) or die $usage;
 
 my (%map, %skip);
@@ -117,7 +118,11 @@ foreach my $mod (sort { $a->{name} cmp $b->{name} } @todo ) {
     # warn Dumper $mod;
     my $version = ($opts{m} and $mod->{type} eq 'missing') ? 0 : MM->parse_version($mod->{file});
     # warn $version;
-    if (!$verbose) {
+    if($opts{'like-cpanfile'}) {
+        $version = 0 if $opts{'no-versions'};
+        printf "requires '%s', %s;", $mod->{name}, $version eq 'undef' ? 0 : $version;
+    }
+    elsif (!$verbose) {
         printf "%-${len}s => '$version',", "'$mod->{name}'" if $version;
     } else {
         printf "%-${len}s => '0', # ", "'$mod->{name}'";
