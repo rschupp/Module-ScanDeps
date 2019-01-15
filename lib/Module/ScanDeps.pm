@@ -1100,10 +1100,9 @@ sub add_deps {
 
     foreach my $module (@{ $args{modules} }) {
         my $file = _find_in_inc($module, $args{include_missing});
-        if(not $file or $file eq 'MISSING') {
-            _warn_of_missing_module($module, $args{warn_missing});
-            next unless $args{include_missing};
-        }
+
+        _warn_of_missing_module($module, $args{warn_missing}) if(!$file || $file eq 'MISSING');
+        next if !$file;
         next if $skip->{$file};
 
         if (exists $rv->{$module}) {
