@@ -52,6 +52,8 @@ if($opts{'files-from-workdir'}) { #todo make custom filemask
         wanted => sub { push @ARGV, $_ if /\.pm$/ },
         no_chdir => 1,
     }, 'lib');
+
+    # warn "Files found: ", join ", ", @ARGV;
 }
 
 if ($eval) {
