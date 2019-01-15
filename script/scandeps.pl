@@ -136,7 +136,8 @@ print "#\n# Legend: [C]ore [X]ternal [S]ubmodule [?]NotOnCPAN\n" if $verbose;
 
 my $cpanfile_fh;
 if ($opts{'save-cpanfile'} and $opts{'like-cpanfile'}) {
-    open($cpanfile_fh, $opts{force} ? '>' : '+>', "cpanfile") or die "Attention! Cant open cpanfile. $!. Use `--force` option to overwrite it."
+    die "Attention! cpanfile already exists. Use `--force` option to overwrite it." if -f 'cpanfile' and not $opts{force};
+    open($cpanfile_fh, '>', "cpanfile") or die "Attention! Cant open cpanfile. $!.";
 }
 
 foreach my $mod (sort { $a->{name} cmp $b->{name} } @todo ) {
@@ -145,9 +146,13 @@ foreach my $mod (sort { $a->{name} cmp $b->{name} } @todo ) {
     # warn $version;
     if($opts{'like-cpanfile'}) {
         $version = 0 if $opts{'no-versions'};
-        my $cpanfile_str = "requires '%s', %s;", $mod->{name}, $version eq 'undef' ? 0 : $version;
-        if($cpanfile_fh) { printf $cpanfile_fh $cpanfile_str }
-        else             { printf $cpanfile_str }
+        # use Data::Dumper; warn Dumper $mod;
+        my $cpanfile_str = sprintf "requires '%s', %s;\n", $mod->{name}, ($version eq 'undef' ? 0 : $version);
+
+        if($cpanfile_fh) { print $cpanfile_fh $cpanfile_str }
+        else             { print $cpanfile_str }
+
+        next;
     }
     elsif (!$verbose) {
         printf "%-${len}s => '$version',", "'$mod->{name}'" if $version;
