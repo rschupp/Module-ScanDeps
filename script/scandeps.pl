@@ -149,7 +149,7 @@ foreach my $mod (sort { $a->{name} cmp $b->{name} } @todo ) {
     if($opts{'like-cpanfile'}) {
         $version = 0 if $opts{'no-versions'};
         # use Data::Dumper; warn Dumper $mod;
-        my $cpanfile_str = sprintf "requires '%s', %s;\n", $mod->{name}, ($version eq 'undef' ? 0 : $version);
+        my $cpanfile_str = sprintf "requires '%s', '%s';\n", $mod->{name}, ($version eq 'undef' ? 0 : $version);
 
         if($cpanfile_fh) { print $cpanfile_fh $cpanfile_str }
         else             { print $cpanfile_str }
