@@ -25,8 +25,12 @@ GetOptions(\%opts,
     "m|include-missing",
     "like-cpanfile",
     "save-cpanfile",
-    'no-versions',
+    "no-versions",
+    "force"
 ) or die $usage;
+
+die 'Use `--save-cpanfile` only with  `--like-cpanfile` option' if ($opts{'save-cpanfile'} and not $opts{'like-cpanfile'});
+die 'Use `--force` only with  `--save-cpanfile` option' if ($opts{'force'} and not $opts{'save-cpanfile'});
 
 my (%map, %skip);
 my $core    = $opts{B};
@@ -116,7 +120,7 @@ $len += 2;
 print "#\n# Legend: [C]ore [X]ternal [S]ubmodule [?]NotOnCPAN\n" if $verbose;
 
 my $cpanfile_fh;
-if ($opts{'save-cpanfile'}) {
+if ($opts{'save-cpanfile'} and $opts{'like-cpanfile'}) {
     open($cpanfile_fh, $opts{force} ? '>' : '+>', "cpanfile") or die "Attention! Cant open cpanfile. $!. Use `--force` option to overwrite it."
 }
 
@@ -253,6 +257,29 @@ Creates CACHEFILE if it does not exist yet.
 =item B<-T>, B<--modtree>
 
 Retrieves module information from CPAN if you have B<CPANPLUS> installed.
+
+no-versions
+force
+
+=item B<-m>, B<--include-missing>
+
+Shows missing modules too.
+
+=item B<--no-versions>
+
+All versions will be set to 0.
+
+=item B<--like-cpanfile>
+
+Shows dependencies in cpanfile syntax.
+
+=item B<--save-cpanfile>
+
+Could be used only with C<--like-cpanfile> option. Saves cpanfile to the working directory.
+
+=item B<--force>
+
+Could be used only with C<--like-cpanfile> and C<--save-cpanfile> options. Overwrites cpanfile to the working directory.
 
 =back
 
