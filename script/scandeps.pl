@@ -24,6 +24,7 @@ GetOptions(\%opts,
     "x|execute",
     "m|include-missing",
     "like-cpanfile",
+    "save-cpanfile",
     'no-versions',
 ) or die $usage;
 
@@ -114,13 +115,20 @@ $len += 2;
 
 print "#\n# Legend: [C]ore [X]ternal [S]ubmodule [?]NotOnCPAN\n" if $verbose;
 
+my $cpanfile_fh;
+if ($opts{'save-cpanfile'}) {
+    open($cpanfile_fh, $opts{force} ? '>' : '+>', "cpanfile") or die "Attention! Cant open cpanfile. $!. Use `--force` option to overwrite it."
+}
+
 foreach my $mod (sort { $a->{name} cmp $b->{name} } @todo ) {
     # warn Dumper $mod;
     my $version = ($opts{m} and $mod->{type} eq 'missing') ? 0 : MM->parse_version($mod->{file});
     # warn $version;
     if($opts{'like-cpanfile'}) {
         $version = 0 if $opts{'no-versions'};
-        printf "requires '%s', %s;", $mod->{name}, $version eq 'undef' ? 0 : $version;
+        my $cpanfile_str = "requires '%s', %s;", $mod->{name}, $version eq 'undef' ? 0 : $version;
+        if($cpanfile_fh) { printf $cpanfile_fh $cpanfile_str }
+        else             { printf $cpanfile_str }
     }
     elsif (!$verbose) {
         printf "%-${len}s => '$version',", "'$mod->{name}'" if $version;
