@@ -1024,10 +1024,10 @@ sub scan_chunk {
 }
 
 sub _find_encoding {
+    my ($enc) = @_;
     return unless $] >= 5.008 and eval { require Encode; %Encode::ExtModule };
 
-    my $mod = $Encode::ExtModule{ Encode::find_encoding($_[0])->name }
-      or return;
+    my $mod = eval { $Encode::ExtModule{ Encode::find_encoding($enc)->name } } or return;
     $mod =~ s{::}{/}g;
     return "$mod.pm";
 }
