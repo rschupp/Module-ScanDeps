@@ -616,7 +616,37 @@ sub scan_deps {
         }
     }
 
-    scan_deps_static(\%args);
+    {
+        # We want to correctly interprete statements like
+        #
+        #   use FindBin;
+        #   use lib "$FindBin/../lib";
+        #
+        # Find out what $FindBin::Bin etc would have been if "use FindBin" had been
+        # called in the first file to analyze.
+        # (1) We don't want to reimplement FindBin, hence fake $0 locally (as the path of the
+        #     first file analyzed) and call FindBin::again().
+        # (2) If the caller of scan_deps() itself uses FindBin, we don't want to overwrite
+        #     the value of "their" $FindBin::Bin.
+
+        use FindBin;
+
+        local $FindBin::Bin;
+        local $FindBin::RealBin;
+        local $FindBin::Script;
+        local $FindBin::RealScript;
+
+        my $_0 = $args{files}[0];
+        local *0 = \$_0;
+        FindBin->again();
+
+        our $Bin = $FindBin::Bin;
+        our $RealBin = $FindBin::RealBin;
+        our $Script = $FindBin::Script;
+        our $RealScript = $FindBin::RealScript;
+
+        scan_deps_static(\%args);
+    }
 
     if ($args{execute} or $args{compile}) {
         scan_deps_runtime(
