@@ -1,3 +1,10 @@
+1.29  2020-08-16
+
+- implement interpretation of stuff like
+
+  use FindBin;
+  use lib "$FindBin/../lib";
+
 1.28  2020-08-06
 
 - placate cperl ("Attempt to change hash while iterating over it.")
