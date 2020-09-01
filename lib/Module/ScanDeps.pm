@@ -18,13 +18,18 @@ use constant is_insensitive_fs => (
 );
 
 use version;
-use Cwd ();
 use File::Path ();
 use File::Temp ();
-use File::Spec ();
-use File::Basename ();
 use FileHandle;
 use Module::Metadata;
+
+# NOTE: Keep the following imports exactly as specified, even if the Module::ScanDeps source
+# doesn't reference some of them. See '"use lib" idioms' for the reason.
+use Cwd (qw(abs_path));
+use File::Spec;
+use File::Spec::Functions;
+use File::Basename;
+
 
 $ScanFileRE = qr/(?:^|\\|\/)(?:[^.]*|.*\.(?i:p[ml]|t|al))$/;
 
@@ -617,19 +622,33 @@ sub scan_deps {
     }
 
     {
-        # We want to correctly interprete statements like
+        ## "use lib" idioms
+        #
+        # We want to correctly interprete stuff like
         #
         #   use FindBin;
         #   use lib "$FindBin/../lib";
         #
         # Find out what $FindBin::Bin etc would have been if "use FindBin" had been
         # called in the first file to analyze.
+        #
+        # Notes:
         # (1) We don't want to reimplement FindBin, hence fake $0 locally (as the path of the
         #     first file analyzed) and call FindBin::again().
         # (2) If the caller of scan_deps() itself uses FindBin, we don't want to overwrite
         #     the value of "their" $FindBin::Bin.
+        #
+        # Other idioms seen sometimes:
+        #
+        # use lib "$ENV{FOO}/path";
+        # use lib File::Spec->catdir($FindBin::Bin, qw[.. qqlib] );
+        # use lib catdir(dirname($0), "perl");
+        # use lib dirname(abs_path($0));
+        #
+        # In order to correctly interprete these, the modules referenced have to be imported.
 
-        use FindBin;
+
+        require FindBin;
 
         local $FindBin::Bin;
         local $FindBin::RealBin;
@@ -1551,8 +1570,8 @@ sub _merge_rv {
         my %mark;
         if ($rv->{$key} and _not_dup($key, $rv, $rv_sub)) {
             warn "Different modules for file '$key' were found.\n"
-                . " -> Using '" . _abs_path($rv_sub->{$key}{file}) . "'.\n"
-                . " -> Ignoring '" . _abs_path($rv->{$key}{file}) . "'.\n";
+                . " -> Using '" . abs_path($rv_sub->{$key}{file}) . "'.\n"
+                . " -> Ignoring '" . abs_path($rv->{$key}{file}) . "'.\n";
             $rv->{$key}{used_by} = [
                 grep (!$mark{$_}++,
                     @{ $rv->{$key}{used_by} },
@@ -1585,21 +1604,12 @@ sub _merge_rv {
 sub _not_dup {
     my ($key, $rv1, $rv2) = @_;
     if (File::Spec->case_tolerant()) {
-        return lc(_abs_path($rv1->{$key}{file})) ne lc(_abs_path($rv2->{$key}{file}));
+        return lc(abs_path($rv1->{$key}{file})) ne lc(abs_path($rv2->{$key}{file}));
     }
     else {
-        return _abs_path($rv1->{$key}{file}) ne _abs_path($rv2->{$key}{file});
+        return abs_path($rv1->{$key}{file}) ne abs_path($rv2->{$key}{file});
     }
 }
-
-sub _abs_path {
-    return join(
-        '/',
-        Cwd::abs_path(File::Basename::dirname($_[0])),
-        File::Basename::basename($_[0]),
-    );
-}
-
 
 sub _warn_of_runtime_loader {
     my $module = shift;
