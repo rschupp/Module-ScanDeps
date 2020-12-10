@@ -1439,7 +1439,7 @@ BEGIN { my $_0 = $ENV{MSD_ORIGINAL_FILE}; *0 = \$_0; }
 
     my @dlls = grep { defined $_ && -e $_ } Module::ScanDeps::DataFeed::_dl_shared_objects();
     my @shared_objects = @dlls;
-    push @shared_objects, grep { s/\.\Q$dlext\E$/.bs/ && -e $_ } @dlls;
+    push @shared_objects, grep { -e $_ } map { (my $bs = $_) =~ s/\.\Q$dlext\E$/.bs/; $bs } @dlls;
 
     # write data file
     my $data_file = $ENV{MSD_DATA_FILE};
@@ -1518,7 +1518,8 @@ sub _info2rv {
     my $rv = {};
 
     my $incs = join('|', sort { length($b) <=> length($a) }
-                              map { s:\\:/:g; quotemeta($_) } @{ $info->{'@INC'} });
+                              map { s:\\:/:g; s:^(/.*?)/+$:$1:; quotemeta($_) }
+                                  @{ $info->{'@INC'} });
     my $i = is_insensitive_fs() ? "i" : "";
     my $strip_inc_prefix = qr{^(?$i:$incs)/};
 
