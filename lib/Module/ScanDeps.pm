@@ -363,6 +363,7 @@ my %Preload = (
         IO/Pipe.pm          IO/Socket.pm        IO/Dir.pm
     )],
     'IO/Socket.pm'                      => [qw( IO/Socket/UNIX.pm )],
+    'IUP.pm'                            => 'sub',
     'JSON.pm'                           => sub {
         # add JSON/PP*.pm, JSON/PP/*.pm
         # and ignore other JSON::* modules (e.g. JSON/Syck.pm, JSON/Any.pm);
