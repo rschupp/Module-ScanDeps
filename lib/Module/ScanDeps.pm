@@ -526,6 +526,8 @@ my %Preload = (
         _glob_in_inc('XML/Parser/Encodings', 1),
     },
     'XML/SAX.pm'                        => [qw( XML/SAX/ParserDetails.ini ) ],
+    'XML/Twig.pm'                       => [qw( URI.pm )],      # or URI::File or LWP
+    'XML/Twig/XPath.pm'                 => [qw( XML/XPathEngine.pm XML/XPath.pm )],
     'XMLRPC/Lite.pm'                    => sub {
         _glob_in_inc('XMLRPC/Transport', 1);
     },
