@@ -1021,8 +1021,11 @@ sub scan_chunk {
             my @mods;
             push @mods, qw( PerlIO.pm PerlIO/encoding.pm Encode.pm ), _find_encoding($1)
                 if $args =~ /:encoding\((.*?)\)/;
-            push @mods, qw( PerlIO.pm PerlIO/via.pm )
-                if $args =~ /:via\(/;
+            while ($args =~ /:(\w+)(?:\((.*?)\))?/g) {
+                push @mods, "PerlIO/$1.pm";
+                push @mods, "Encode.pm", _find_encoding($2) if $1 eq "encoding";
+            }
+            push @mods, "PerlIO.pm" if @mods;
             return \@mods if @mods;
         }
         if (/\b(?:en|de)code\(\s*['"]?([-\w]+)/) {
