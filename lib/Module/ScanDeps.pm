@@ -407,6 +407,7 @@ my %Preload = (
     'Module/Pluggable.pm'               => sub {
         _glob_in_inc('$CurrentPackage/Plugin', 1);
     },
+    'Moo.pm'                            => [qw( Class/XSAccessor.pm )],
     'Moose.pm'                          => sub {
         _glob_in_inc('Moose', 1),
         _glob_in_inc('Class/MOP', 1),
