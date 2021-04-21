@@ -478,6 +478,11 @@ my %Preload = (
     },
     'Socket/GetAddrInfo.pm'             => 'sub',
     'Specio/PartialDump.pm'             => \&_unicore,
+    'Spreadsheet/ParseODS.pm'           => sub {
+        _glob_in_inc('Class/XSAccessor', 1),
+        _glob_in_inc('XML/XPathEngine',  1),
+        _glob_in_inc('URI/Escape', 1),
+    },
     'SQL/Parser.pm'                     => sub {
         _glob_in_inc('SQL/Dialects', 1);
     },
