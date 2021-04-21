@@ -1020,6 +1020,8 @@ sub scan_chunk {
                 if $args =~ /:encoding\((.*?)\)/;
             push @mods, qw( PerlIO.pm PerlIO/via.pm )
                 if $args =~ /:via\(/;
+            push @mods, qw( PerlIO/gzip.pm )
+                if $args =~ /:gzip\(/;
             return \@mods if @mods;
         }
         if (/\b(?:en|de)code\(\s*['"]?([-\w]+)/) {
