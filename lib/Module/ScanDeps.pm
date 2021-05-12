@@ -424,6 +424,12 @@ my %Preload = (
     },
     'Module/Implementation.pm'          => \&_warn_of_runtime_loader,
     'Module/Runtime.pm'                 => \&_warn_of_runtime_loader,
+    'Mojo/Util.pm'                      => sub {        # html_entities.txt
+        map { $_->{name} } _glob_in_inc('Mojo/resources', 0)
+    },
+    'Mojo/IOLoop/TLS.pm'                => sub {        # server.{crt,key}
+        map { $_->{name} } _glob_in_inc('Mojo/IOLoop/resources', 0)
+    },
     'Net/DNS/Resolver.pm'               => 'sub',
     'Net/DNS/RR.pm'                     => 'sub',
     'Net/FTP.pm'                        => 'sub',
@@ -491,7 +497,7 @@ my %Preload = (
     },
     'SVN/Core.pm'                       => sub {
         _glob_in_inc('SVN', 1),
-        map $_->{name}, _glob_in_inc('auto/SVN', 0),    # *.so, *.bs files
+        map { $_->{name} } _glob_in_inc('auto/SVN', 0),    # *.so, *.bs files
     },
     'Template.pm'                       => 'sub',
     'Term/ReadLine.pm'                  => 'sub',
@@ -958,8 +964,8 @@ sub _extract_loader_dependency {
     return [
         $loader_file,
         map { my $mod="$prefix$_"; $mod =~ s{::}{/}g; "$mod.pm" }
-        grep { length and !/^q[qw]?$/ and !/-/ }
-        split /[^\w:-]+/, $loadee
+            grep { length and !/^q[qw]?$/ and !/-/ }
+                 split /[^\w:-]+/, $loadee
         #should skip any module name that contains '-', not split it in two
     ];
 }
@@ -1213,25 +1219,23 @@ sub _find_in_inc {
 }
 
 sub _glob_in_inc {
-    my $subdir  = shift;
-    my $pm_only = shift;
-    my @files;
+    my ($subdir, $pm_only) = @_;
 
     require File::Find;
 
     $subdir =~ s/\$CurrentPackage/$CurrentPackage/;
 
+    my @files;
     foreach my $inc (grep !/\bBSDPAN\b/, @INC, @IncludeLibs) {
         my $dir = "$inc/$subdir";
         next unless -d $dir;
         File::Find::find(
             sub {
-                return unless -f;
+                return unless -f $_;
                 return if $pm_only and !/\.p[mh]$/i;
                 (my $name = $File::Find::name) =~ s!^\Q$inc\E/!!;
-                push @files, $pm_only
-                  ? $name
-                  : { file => $File::Find::name, name => $name };
+                push @files, $pm_only ? $name
+                                      : { file => $File::Find::name, name => $name };
             },
             $dir
         );
@@ -1245,12 +1249,11 @@ sub _glob_in_inc {
 # NOTE: File::Find has no public notion of the depth of the traversal
 # in its "wanted" callback, so it's not helpful
 sub _glob_in_inc_1 {
-    my $subdir  = shift;
-    my $pm_only = shift;
-    my @files;
+    my ($subdir, $pm_only) = @_;
 
     $subdir =~ s/\$CurrentPackage/$CurrentPackage/;
 
+    my @files;
     foreach my $inc (grep !/\bBSDPAN\b/, @INC, @IncludeLibs) {
         my $dir = "$inc/$subdir";
         next unless -d $dir;
@@ -1259,9 +1262,8 @@ sub _glob_in_inc_1 {
         my @names = map { "$subdir/$_" } grep { -f "$dir/$_" } readdir $dh;
         closedir $dh;
 
-        push @files, $pm_only
-            ? ( grep { /\.p[mh]$/i } @names )
-            : ( map { { file => "$inc/$_", name => $_ } } @names );
+        push @files, $pm_only ? ( grep { /\.p[mh]$/i } @names )
+                              : ( map { { file => "$inc/$_", name => $_ } } @names );
     }
 
     return @files;
