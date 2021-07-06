@@ -7,6 +7,7 @@ use Config;
 use Getopt::Long qw(:config bundling no_ignore_case);
 use Module::ScanDeps;
 use ExtUtils::MakeMaker;
+use File::Find;
 use subs qw( _name _modtree );
 
 my $usage = "Usage: $0 [ -B ] [ -V ] [ -T ] [ -x [ --xargs STRING ] | -c ] [ -R ] [-C FILE ] [ -e STRING | FILE ... ]\n";
@@ -22,7 +23,16 @@ GetOptions(\%opts,
     "T|modtree",
     "V|verbose",
     "x|execute",
+    "m|include-missing",
+    "like-cpanfile",
+    "save-cpanfile",
+    "no-versions",
+    "force",
+    "files-from-workdir",
 ) or die $usage;
+
+die 'Use `--save-cpanfile` only with  `--like-cpanfile` option' if ($opts{'save-cpanfile'} and not $opts{'like-cpanfile'});
+die 'Use `--force` only with  `--save-cpanfile` option' if ($opts{'force'} and not $opts{'save-cpanfile'});
 
 my (%map, %skip);
 my $core    = $opts{B};
@@ -30,6 +40,21 @@ my $verbose = $opts{V};
 my $eval    = $opts{e};
 my $recurse = $opts{R} ? 0 : 1;
 my $modtree = {} unless $opts{T}; # i.e. disable it unless explicitly requested
+
+if($opts{'files-from-workdir'}) { #todo make custom filemask
+    # use lib 'lib';
+    finddepth({
+        wanted => sub { push @ARGV, $_ if /\.pl$/ },
+        no_chdir => 1,
+    }, 'bin');
+
+    finddepth({
+        wanted => sub { push @ARGV, $_ if /\.pm$/ },
+        no_chdir => 1,
+    }, 'lib');
+
+    # warn "Files found: ", join ", ", @ARGV;
+}
 
 if ($eval) {
     require File::Temp;
@@ -59,8 +84,8 @@ my $map = scan_deps(
     $opts{c} ? ( compile => 1 ) : (),
     $opts{V} ? ( warn_missing => 1 ) : (),
     $opts{C} ? ( cache_file   => $opts{C}) : (),
+    $opts{m} ? ( include_missing => $opts{m}) : (),
 );
-
 
 my $len = 0;
 my @todo;
@@ -79,7 +104,11 @@ foreach my $key (sort keys %$map) {
         $bin{$key}++;
     }
 
-    next unless $mod->{type} eq 'module';
+    # warn $mod->{type};
+    if($mod->{type} ne 'module') {
+        if ($opts{m}) { next if $mod->{type} ne 'missing'; }
+        else          { next }
+    }
 
     next if $skip{$name};
 
@@ -107,10 +136,27 @@ $len += 2;
 
 print "#\n# Legend: [C]ore [X]ternal [S]ubmodule [?]NotOnCPAN\n" if $verbose;
 
-foreach my $mod (sort { $a->{name} cmp $b->{name} } @todo ) {
-    my $version = MM->parse_version($mod->{file});
+my $cpanfile_fh;
+if ($opts{'save-cpanfile'} and $opts{'like-cpanfile'}) {
+    die "Attention! cpanfile already exists. Use `--force` option to overwrite it." if -f 'cpanfile' and not $opts{force};
+    open($cpanfile_fh, '>', "cpanfile") or die "Attention! Cant open cpanfile. $!.";
+}
 
-    if (!$verbose) {
+foreach my $mod (sort { $a->{name} cmp $b->{name} } @todo ) {
+    # warn Dumper $mod;
+    my $version = ($opts{m} and $mod->{type} eq 'missing') ? 0 : MM->parse_version($mod->{file});
+    # warn $version;
+    if($opts{'like-cpanfile'}) {
+        $version = 0 if $opts{'no-versions'};
+        # use Data::Dumper; warn Dumper $mod;
+        my $cpanfile_str = sprintf "requires '%s', '%s';\n", $mod->{name}, ($version eq 'undef' ? 0 : $version);
+
+        if($cpanfile_fh) { print $cpanfile_fh $cpanfile_str }
+        else             { print $cpanfile_str }
+
+        next;
+    }
+    elsif (!$verbose) {
         printf "%-${len}s => '$version',", "'$mod->{name}'" if $version;
     } else {
         printf "%-${len}s => '0', # ", "'$mod->{name}'";
@@ -233,6 +279,35 @@ Creates CACHEFILE if it does not exist yet.
 =item B<-T>, B<--modtree>
 
 Retrieves module information from CPAN if you have B<CPANPLUS> installed.
+
+no-versions
+force
+
+=item B<--files-from-workdir>
+
+Finds *.pm files from C<$PWD/lib> and *.pl files from C<$PWD/bin>.
+
+=back
+
+=item B<-m>, B<--include-missing>
+
+Shows missing modules too.
+
+=item B<--no-versions>
+
+All versions will be set to 0.
+
+=item B<--like-cpanfile>
+
+Shows dependencies in cpanfile syntax.
+
+=item B<--save-cpanfile>
+
+Could be used only with C<--like-cpanfile> option. Saves cpanfile to the working directory.
+
+=item B<--force>
+
+Could be used only with C<--like-cpanfile> and C<--save-cpanfile> options. Overwrites cpanfile to the working directory.
 
 =back
 
