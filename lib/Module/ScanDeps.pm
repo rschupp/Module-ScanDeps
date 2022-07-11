@@ -541,11 +541,8 @@ my %Preload = (
     'YAML/Any.pm'                       => sub {
         # try to figure out what YAML::Any would have used
         my $impl = eval "use YAML::Any; YAML::Any->implementation;";
-        unless ($@)
-        {
-            $impl =~ s!::!/!g;
-            return "$impl.pm";
-        }
+        return _mod2pm($impl) unless $@;
+
         _glob_in_inc('YAML', 1);        # fallback
     },
 );
@@ -815,22 +812,20 @@ sub scan_deps_runtime {
 sub scan_file{
     my $file = shift;
     my %found;
-    my $FH;
-    open $FH, $file or die "Cannot open $file: $!";
+    open my $fh, $file or die "Cannot open $file: $!";
 
     $SeenTk = 0;
     # Line-by-line scanning
   LINE:
-    while (<$FH>) {
-        chomp(my $line = $_);
+    while (my $line = <$fh>) {
+        chomp($line);
         foreach my $pm (scan_line($line)) {
             last LINE if $pm eq '__END__';
 
             if ($pm eq '__POD__') {
-                while (<$FH>) {
-                    last if (/^=cut/);
+                while ($line = <$fh>) {
+                    next LINE if $line =~ /^=cut/;
                 }
-                next LINE;
             }
 
             # Skip Tk hits from Term::ReadLine and Tcl::Tk
@@ -844,7 +839,7 @@ sub scan_file{
             $found{$pm}++;
         }
     }
-    close $FH or die "Cannot close $file: $!";
+    close $fh or die "Cannot close $file: $!";
     return keys %found;
 }
 
@@ -861,9 +856,9 @@ sub scan_line {
   CHUNK:
     foreach (split(/;/, $line)) {
         s/^\s*//;
-        #  handle single line blocks like 'do { package foo; use xx; }'
-        s/^(?:do\s*)?\{\s*//;
-        s/\}$//;
+        s/^\w+:\s*//;           # remove LABEL:
+        s/^(?:do\s*)?\{\s*//;   # handle single line blocks like 'do { package foo; use xx; }'
+        s/\s*\}$//;
 
         if (/^package\s+(\w+)/) {
             $CurrentPackage = $1;
@@ -874,11 +869,11 @@ sub scan_line {
         if (/^(?:use|require)\s+v?(\d[\d\._]*)/) {
           # include feature.pm if we have 5.9.5 or better
           if (version->new($1) >= version->new("5.9.5")) {
-              # seems to catch 5.9, too (but not 5.9.4)
+            # seems to catch 5.9, too (but not 5.9.4)
             $found{"feature.pm"}++;
-            next CHUNK;
           }
-        }
+          next CHUNK;
+        } 
 
         if (my ($pragma, $args) = /^use \s+ (autouse|if) \s+ (.+)/x)
         {
@@ -910,9 +905,8 @@ sub scan_line {
                 # punt if there was a syntax error
                 return if $@ or !defined $module;
             };
-            $module =~ s{::}{/}g;
-            $found{"$pragma.pm"}++;
-            $found{"$module.pm"}++;
+            $found{_mod2pm($pragma)}++;
+            $found{_mod2pm($module)}++;
             next CHUNK;
         }
 
@@ -957,17 +951,20 @@ sub _extract_loader_dependency {
     my $loadee = shift;
     my $prefix = (@_ && $_[0]) ? $_[0].'::' : '';
 
-    my $loader_file = $loader;
-    $loader_file =~ s/::/\//;
-    $loader_file .= ".pm";
-
+    my $loader_file = _mod2pm($loader);
     return [
         $loader_file,
-        map { my $mod="$prefix$_"; $mod =~ s{::}{/}g; "$mod.pm" }
+        map { _mod2pm("$prefix$_") }
             grep { length and !/^q[qw]?$/ and !/-/ }
                  split /[^\w:-]+/, $loadee
         #should skip any module name that contains '-', not split it in two
     ];
+}
+
+sub _mod2pm {
+    my $mod = shift;
+    $mod =~ s!::!/!g;
+    return "$mod.pm";
 }
 
 sub scan_chunk {
@@ -975,42 +972,52 @@ sub scan_chunk {
 
     # Module name extraction heuristics {{{
     my $module = eval {
-        $_ = $chunk;
+        local $_ = $chunk;
         s/^\s*//;
-        #  handle single line blocks like 'do { package foo; use xx; }'
-        s/^(?:do\s*)?\{\s*//;
-        s/\}\s*$//;
+
+        # "if", "while" etc: analyze the expression
+        s/^(?:if|elsif|unless|while|until) \s* \( \s*//x;
+
+        # "eval" with a block: analyze the block
+        s/^eval \s* \{ \s*//x;
+
+        # "eval" with an expression that's a string literal:
+        # analyze the string
+        s/^eval \s+ ['"] \s*//x;
 
         # TODO: There's many more of these "loader" type modules on CPAN!
         # scan for the typical module-loader modules
         my $loaders = "asa base parent prefork POE encoding maybe only::matching Mojo::Base";
         # grab pre-calculated regexp or re-build it (and cache it)
-        my $loader_regexp = $LoaderRegexp{$loaders} || _build_loader_regexp($loaders);
+        my $loader_regexp = $LoaderRegexp{$loaders} 
+                            || _build_loader_regexp($loaders);
         if ($_ =~ $loader_regexp) { # $1 == loader, $2 == loadee
           my $retval = _extract_loader_dependency($1, $2);
           return $retval if $retval;
         }
 
-        $loader_regexp = $LoaderRegexp{"Catalyst"} || _build_loader_regexp("Catalyst", "Catalyst::Plugin");
+        $loader_regexp = $LoaderRegexp{"Catalyst"} 
+                         || _build_loader_regexp("Catalyst", "Catalyst::Plugin");
         if ($_ =~ $loader_regexp) { # $1 == loader, $2 == loadee
           my $retval = _extract_loader_dependency($1, $2, "Catalyst::Plugin");
           return $retval if $retval;
         }
 
-        return [ 'Class/Autouse.pm',
-            map { s{::}{/}g; "$_.pm" }
-              grep { length and !/^:|^q[qw]?$/ } split(/[^\w:]+/, $1) ]
-          if /^use \s+ Class::Autouse \b \s* (.*)/sx
-              or /^Class::Autouse \s* -> \s* autouse \s* (.*)/sx;
+        if (/^use \s+ Class::Autouse \b \s* (.*)/sx
+            or /^Class::Autouse \s* -> \s* autouse \s* (.*)/sx) {
+          return [ 'Class/Autouse.pm',
+                   map { _mod2pm($_) }
+                     grep { length and !/^:|^q[qw]?$/ } 
+                       split(/[^\w:]+/, $1) ];
+        }
 
-        return $1 if /^(?:use|no|require) \s+ ([\w:\.\-\\\/\"\']+)/x;
-        return $1
-          if /^(?:use|no|require) \s+ \( \s* ([\w:\.\-\\\/\"\']+) \s* \)/x;
+        return _mod2pm($1) if /^(?:use|no) \s+ ([\w:]+)/x;       # bareword
 
-        if (   s/^eval\s+\"([^\"]+)\"/$1/
-            or s/^eval\s*\(\s*\"([^\"]+)\"\s*\)/$1/)
-        {
-            return $1 if /^\s* (?:use|no|require) \s+ ([\w:\.\-\\\/\"\']*)/x;
+        if (s/^require [\s(]+//x) {
+            return _mod2pm($1) if /^([\w:]+)/x;                  # bareword
+            if (/^(['"]) (.*?) \1/x) {                           # string literal
+                return _mod2pm($2);
+            }
         }
 
         if (/(<[^>]*[^\$\w>][^>]*>)/) {
@@ -1090,8 +1097,7 @@ sub _find_encoding {
     return unless $] >= 5.008 and eval { require Encode; %Encode::ExtModule };
 
     my $mod = eval { $Encode::ExtModule{ Encode::find_encoding($enc)->name } } or return;
-    $mod =~ s{::}{/}g;
-    return "$mod.pm";
+    return _mod2pm($mod);
 }
 
 sub _add_info {
@@ -1297,8 +1303,7 @@ sub set_options {
     my $self = shift;
     my %args = @_;
     foreach my $module (@{ $args{add_modules} }) {
-        $module =~ s/::/\//g;
-        $module .= '.pm' unless $module =~ /\.p[mh]$/i;
+        $module = _mod2pm($module) unless $module =~ /\.p[mh]$/i;
         my $file = _find_in_inc($module)
           or _warn_of_missing_module($module, $args{warn_missing}), next;
         $self->{files}{$module} = $file;
