@@ -983,7 +983,7 @@ sub scan_chunk {
 
         # "eval" with an expression that's a string literal:
         # analyze the string
-        s/^eval \s+ ['"] \s*//x;
+        s/^eval \s+ (?:['"]|qq?\W) \s*//x;
 
         # TODO: There's many more of these "loader" type modules on CPAN!
         # scan for the typical module-loader modules
@@ -1014,10 +1014,7 @@ sub scan_chunk {
         return _mod2pm($1) if /^(?:use|no) \s+ ([\w:]+)/x;       # bareword
 
         if (s/^require [\s(]+//x) {
-            return _mod2pm($1) if /^([\w:]+)/x;                  # bareword
-            if (/^(['"]) (.*?) \1/x) {                           # string literal
-                return _mod2pm($2);
-            }
+            return _mod2pm($1) if /^(?:['"]|qq?\W)? ([\w:]+)/x;  # bareword or string literal
         }
 
         if (/(<[^>]*[^\$\w>][^>]*>)/) {
@@ -1081,7 +1078,7 @@ sub scan_chunk {
     return unless defined($module);
     return wantarray ? @$module : $module->[0] if ref($module);
 
-    $module =~ s/^['"]//;
+    $module =~ s/^(?:['"]|qq?\W)//;
     return unless $module =~ /^\w/;
 
     $module =~ s/\W+$//;
