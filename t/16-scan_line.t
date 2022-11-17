@@ -72,6 +72,18 @@ my @tests = (
         expected => 'Win32/WinError.pm',
     },
     {
+        chunk    => ' eval q(require Win32::WinError; 1);',
+        expected => 'Win32/WinError.pm',
+    },
+    {
+        chunk    => ' eval qq[require Win32::WinError; 1];',
+        expected => 'Win32/WinError.pm',
+    },
+    {
+        chunk    => ' eval qq {require Win32::WinError; 1};',
+        expected => 'Win32/WinError.pm',
+    },
+    {
         chunk    => ' if ( eval "require Win32::WinError; 1" ) {',
         expected => 'Win32/WinError.pm',
     },
