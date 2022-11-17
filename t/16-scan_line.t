@@ -107,5 +107,5 @@ foreach my $t (@tests)
 {
     my @got = scan_line($t->{chunk});
     my @exp = split(' ', $t->{expected});
-    is_deeply([sort @got], [sort @exp], $t->{comment});
+    is_deeply([sort @got], [sort @exp], $t->{comment} || $t->{chunk});
 }
