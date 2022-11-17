@@ -983,7 +983,7 @@ sub scan_chunk {
 
         # "eval" with an expression that's a string literal:
         # analyze the string
-        s/^eval \s+ (?:['"]|qq?\W) \s*//x;
+        s/^eval \s+ (?:['"]|qq?\s*\W) \s*//x;
 
         # TODO: There's many more of these "loader" type modules on CPAN!
         # scan for the typical module-loader modules
