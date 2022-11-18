@@ -600,8 +600,10 @@ sub scan_deps {
     }
     my ($type, $path);
     foreach my $input_file (@{$args{files}}) {
-        if ($input_file !~ $ScanFileRE) {
-            warn "Skipping input file $input_file because it matches \$Module::ScanDeps::ScanFileRE\n" if $args{warn_missing};
+        if ($input_file !~ $ScanFileRE)  {
+            warn "Skipping input file $input_file"
+                 . " because it doesn't match \$Module::ScanDeps::ScanFileRE\n" 
+                    if $args{warn_missing};
             next;
         }
 
