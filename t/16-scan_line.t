@@ -95,6 +95,26 @@ my @tests = (
         chunk    => ' if ( eval "require Win32::WinError" ) {',
         expected => 'Win32/WinError.pm',
     },
+    {
+        chunk    => ' print "pausing to do deferred textsearches"',
+        expected => '',
+    },
+    {
+        chunk    => ' printf "pausing to do deferred textsearches";',
+        expected => '',
+    },
+    {
+        chunk    => ' die "this method is very dangerous, if you really want to do it, read the source for caveats";',
+        expected => '',
+    },
+    {
+        chunk    => ' warn "this method is very dangerous, if you really want to do it, read the source for caveats";',
+        expected => '',
+    },
+    {
+        chunk    => ' if ( $arg eq "do count only" ) {',
+        expected => '',
+    },
 );
 
 plan tests => 1+@tests;

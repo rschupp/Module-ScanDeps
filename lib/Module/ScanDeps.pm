@@ -928,6 +928,16 @@ sub scan_line {
             next CHUNK;
         }
 
+        if (/^(?:print|printf|die|warn)/) {
+          # ignore lines of the form
+          #   print "... do ...",
+          #   printf "... do ...",
+          #   die "... do ...",
+          #   warn "... do ...",
+          # since scan_chunk() cannot discern
+          next CHUNK;
+        }
+
         $found{$_}++ for scan_chunk($_);
     }
 
