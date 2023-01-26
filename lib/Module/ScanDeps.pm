@@ -602,7 +602,7 @@ sub scan_deps {
     foreach my $input_file (@{$args{files}}) {
         if ($input_file !~ $ScanFileRE)  {
             warn "Skipping input file $input_file"
-                 . " because it doesn't match \$Module::ScanDeps::ScanFileRE\n" 
+                 . " because it doesn't match \$Module::ScanDeps::ScanFileRE\n"
                     if $args{warn_missing};
             next;
         }
@@ -853,7 +853,6 @@ sub scan_line {
     return '__POD__' if $line =~ /^=\w/;
 
     $line =~ s/\s*#.*$//;
-    $line =~ s/[\\\/]+/\//g;
 
   CHUNK:
     foreach (split(/;/, $line)) {
@@ -875,7 +874,7 @@ sub scan_line {
             $found{"feature.pm"}++;
           }
           next CHUNK;
-        } 
+        }
 
         if (my ($pragma, $args) = /^use \s+ (autouse|if) \s+ (.+)/x)
         {
@@ -934,28 +933,32 @@ sub scan_line {
     return sort keys %found;
 }
 
-# short helper for scan_chunk
+# short helpers for scan_chunk
 my %LoaderRegexp; # cache
-sub _build_loader_regexp {
-    my $loaders = shift;
-    my $prefix = (@_ && $_[0]) ? $_[0].'::' : '';
 
-    my $loader = join '|', map quotemeta($_), split /\s+/, $loaders;
-    my $regexp = qr/^\s* use \s+ ($loader)(?!\:) \b \s* (.*)/sx;
-    # WARNING: This doesn't take the prefix into account
-    $LoaderRegexp{$loaders} = $regexp;
-    return $regexp
+sub _check_loader {
+    my ($chunk, $loaders, $prefix) = @_;
+    $LoaderRegexp{$loaders} ||= _build_loader_regexp($loaders);
+
+    if (my ($loader, $loadee) = $chunk =~ $LoaderRegexp{$loaders}) {
+        return _extract_loader_dependency($loader, $loadee, $prefix);
+    }
+    return;
 }
 
-# short helper for scan_chunk
-sub _extract_loader_dependency {
-    my $loader = shift;
-    my $loadee = shift;
-    my $prefix = (@_ && $_[0]) ? $_[0].'::' : '';
+sub _build_loader_regexp {
+    my ($loaders) = @_;
+    my $alt = join('|', map { quotemeta($_) }
+                            split(/\s+/, $loaders));
+    return qr/^\s* use \s+ ($alt)(?!\:) \b \s* (.*)/sx;
+}
 
-    my $loader_file = _mod2pm($loader);
+sub _extract_loader_dependency {
+    my ($loader, $loadee, $prefix) = @_;
+    $prefix = $prefix ? "${prefix}::" : "";
+
     return [
-        $loader_file,
+        _mod2pm($loader),
         map { _mod2pm("$prefix$_") }
             grep { length and !/^q[qw]?$/ and !/-/ }
                  split /[^\w:-]+/, $loadee
@@ -989,34 +992,30 @@ sub scan_chunk {
 
         # TODO: There's many more of these "loader" type modules on CPAN!
         # scan for the typical module-loader modules
-        my $loaders = "asa base parent prefork POE encoding maybe only::matching Mojo::Base";
         # grab pre-calculated regexp or re-build it (and cache it)
-        my $loader_regexp = $LoaderRegexp{$loaders} 
-                            || _build_loader_regexp($loaders);
-        if ($_ =~ $loader_regexp) { # $1 == loader, $2 == loadee
-          my $retval = _extract_loader_dependency($1, $2);
-          return $retval if $retval;
+        if (my $mods = _check_loader(
+            $_, "asa base parent prefork POE encoding maybe only::matching Mojo::Base")) {
+            return $mods;
         }
-
-        $loader_regexp = $LoaderRegexp{"Catalyst"} 
-                         || _build_loader_regexp("Catalyst", "Catalyst::Plugin");
-        if ($_ =~ $loader_regexp) { # $1 == loader, $2 == loadee
-          my $retval = _extract_loader_dependency($1, $2, "Catalyst::Plugin");
-          return $retval if $retval;
+        if (my $mods = _check_loader(
+            $_, "Catalyst", "Catalyst::Plugin")) {
+            return $mods;
         }
 
         if (/^use \s+ Class::Autouse \b \s* (.*)/sx
             or /^Class::Autouse \s* -> \s* autouse \s* (.*)/sx) {
           return [ 'Class/Autouse.pm',
                    map { _mod2pm($_) }
-                     grep { length and !/^:|^q[qw]?$/ } 
+                     grep { length and !/^:|^q[qw]?$/ }
                        split(/[^\w:]+/, $1) ];
         }
 
-        return _mod2pm($1) if /^(?:use|no) \s+ ([\w:]+)/x;       # bareword
+        return _mod2pm($1) if /^(?:use|no) \s+ ([\w:]+)/x; # bareword
 
-        if (s/^require [\s(]+//x) {
-            return _mod2pm($1) if /^(?:['"]|qq?\W)? ([\w:]+)/x;  # bareword or string literal
+        if (s/^(require|do) [\s(]+//x) {
+            return _mod2pm($1)                          # bareword ("require" only)
+                if $1 eq "require" && /^([\w:]+)/;
+            return $_;                                  # maybe string literal?
         }
 
         if (/(<[^>]*[^\$\w>][^>]*>)/) {
@@ -1044,8 +1043,6 @@ sub scan_chunk {
             return [qw( Encode.pm ), _find_encoding($1)];
         }
 
-        return $1 if /\b do \s+ ([\w:\.\-\\\/\"\']*)/x;
-
         if ($SeenTk) {
             my @modules;
             while (/->\s*([A-Z]\w+)/g) {
@@ -1067,10 +1064,10 @@ sub scan_chunk {
         }
 
         # Module::Runtime
-        return $1 if /\b(?:require_module|use_module|use_package_optimistically) \s* \( \s* ([\w:"']+)/x;
+        return $_ if s/^(?:require_module|use_module|use_package_optimistically) \s* \( \s*//x;
 
         # Test::More
-        return $1 if /\b(?:require_ok|use_ok) \s* \( \s* ([\w:"']+)/x;
+        return $_ if s/^(?:require_ok|use_ok) \s* \( \s*//x;
 
         return;
     };
@@ -1080,10 +1077,15 @@ sub scan_chunk {
     return unless defined($module);
     return wantarray ? @$module : $module->[0] if ref($module);
 
-    $module =~ s/^(?:['"]|qq?\W)//;
-    return unless $module =~ /^\w/;
+    # extract contents from string literals
+    if ($module =~ /^(['"]) (.*?) \1/x) {
+        $module = $2;
+    }
+    elsif ($module =~ s/^qq? \s* (\W)//x) {
+        (my $closing = $1) =~  tr:([{<:)]}>:;
+        $module =~ s/\Q$closing\E.*//;
+    }
 
-    $module =~ s/\W+$//;
     $module =~ s/::/\//g;
     return if $module =~ /^(?:[\d\._]+|'.*[^']|".*[^"])$/;
 
@@ -1540,8 +1542,6 @@ sub _info2rv {
 
     foreach my $key (keys %{ $info->{'%INC'} }) {
         (my $path = $info->{'%INC'}{$key}) =~ s:\\:/:g;
-        $key =~ s:\\:/:g;
-        $key =~ s/$strip_inc_prefix// if File::Spec->file_name_is_absolute($key);
 
         $rv->{$key} = {
             'used_by' => [],
