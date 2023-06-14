@@ -9,7 +9,7 @@ BEGIN {
     if(!File::Spec->case_tolerant()) {
         plan skip_all => 'Test irrelevant on case-sensitive systems';
     } else {
-        plan tests => 43;
+        plan tests => 3;
     }
 }
 
@@ -54,13 +54,13 @@ my $rv1 = scan_deps(@roots1);
 #use Data::Dumper;
 #print STDERR "\n", Dumper($rv1);
 
-compare_scandeps_rvs($rv1, $expected_rv1, \@roots1);
+compare_rv($rv1, $expected_rv1, \@roots1);
 
 # Check that only one entry for Cwd is created.
 
 my @roots2 = qw(t/data/case-insensitive-keys/Test2.pm);
 my $rv2 = scan_deps(files => \@roots2);
 my @keys = grep { lc($_) eq "cwd.pm" } keys %$rv2;
-ok($#keys == 0, "contains only one match");
+ok(@keys == 1, "contains only one match");
 
 __END__
