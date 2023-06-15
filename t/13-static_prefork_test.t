@@ -18,18 +18,13 @@ BEGIN { use_ok( 'Module::ScanDeps' ); }
 # Tests static dependency scanning with the prefork module.
 # This was broken until Module::ScanDeps 0.85
 ##############################################################
-my $root = $0;
-
-use prefork "less";
+my $root = "t/data/prefork.pl";
 
 my @deps = qw(
     Carp.pm   Config.pm	  Exporter.pm 
-    Test/More.pm  strict.pm   vars.pm
-    prefork.pm less.pm
+    strict.pm warnings.pm prefork.pm    less.pm
 );
 
 # Functional i/f
 my $rv = scan_deps($root);
-check_rv($rv, [$0], \@deps);
-
-__END__
+check_rv($rv, [$root], \@deps);

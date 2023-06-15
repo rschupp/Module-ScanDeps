@@ -13,6 +13,7 @@ our @ISA = qw(Exporter);
 our $VERSION   = '0.1';
 our @EXPORT = qw( check_rv compare_rv generic_abs_path dump_rv );
 
+# runs 1 (toplevel) test
 sub check_rv {
     my ($rv, $input_keys, $known_deps, $name) = @_;
     $name ||= "Check rv";
@@ -85,6 +86,7 @@ sub check_rv {
     });
 }
 
+# runs 1 (toplevel) test
 sub compare_rv {
     my ($rv_got, $rv_expected, $input_keys, $name) = @_;
     $name ||= "Compare rvs";

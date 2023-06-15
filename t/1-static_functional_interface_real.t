@@ -18,13 +18,11 @@ BEGIN { use_ok( 'Module::ScanDeps' ); }
 # majority of files scanned aren't fixed, the checks are
 # necessarily loose.
 ##############################################################
-my $root = $0;
+my $root = "t/data/minimal.pl";
 
-my @deps = qw(
-    Carp.pm   Config.pm	  Exporter.pm 
-    Test/More.pm  strict.pm   vars.pm
-);
+my @deps = qw( Carp.pm Exporter.pm XSLoader.pm DynaLoader.pm
+               strict.pm warnings.pm Data/Dumper.pm );
 
 # Functional i/f
 my $rv = scan_deps($root);
-check_rv($rv, [$0], \@deps);
+check_rv($rv, [$root], \@deps);
