@@ -1234,15 +1234,18 @@ sub _glob_in_inc {
 
     my @files;
     foreach my $inc (grep !/\bBSDPAN\b/, @INC, @IncludeLibs) {
-        $inc =~ s|\\|\/|go;
         my $dir = "$inc/$subdir";
         next unless -d $dir;
+
+        # canonicalize $inc as newer versions of File::Find return
+        # a canonicalized $File::Find::name
+        (my $canon = $inc) =~ s|\\|\/|g;
         File::Find::find(
             sub {
                 return unless -f $_;
                 return if $pm_only and !/\.p[mh]$/i;
-                (my $name = $File::Find::name) =~ s|\\|\/|go;
-                $name =~ s!^\Q$inc\E/!!;
+                (my $name = $File::Find::name) =~ s|\\|\/|g;
+                $name =~ s|^\Q$canon\E/||;
                 push @files, $pm_only ? $name
                                       : { file => $File::Find::name, name => $name };
             },
