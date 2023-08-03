@@ -20,8 +20,20 @@ my @tests = (
         expected => 'parent.pm strict.pm',
     },
     {
-        chunk    => 'use parent::doesnotexists qw(strict);',
-        expected => 'parent/doesnotexists.pm',
+        chunk    => 'use parent "Foo::Bar"',
+        expected => 'parent.pm Foo/Bar.pm',
+    },
+    {
+        chunk    => 'use parent qw(Fred Wilma);',
+        expected => 'parent.pm Fred.pm Wilma.pm',
+    },
+    {
+        chunk    => 'use parent "Foo::Bar", qw(Fred Wilma);',
+        expected => 'parent.pm Foo/Bar.pm Fred.pm Wilma.pm',
+    },
+    {
+        chunk    => 'use parent::doesnotexist qw(strict);',
+        expected => 'parent/doesnotexist.pm',
     },
     {
         chunk    => 'use Mojo::Base "strict";',
@@ -33,6 +45,18 @@ my @tests = (
         expected => 'Catalyst.pm Catalyst/Plugin/ConfigLoader.pm 
                      Catalyst/Plugin/Session/State/Cookie.pm',
         comment  => '-Debug should be skipped',
+    },
+    {
+        chunk    => 'use Catalyst qw/URI +My::Catalyst::Stuff/',
+        expected => 'Catalyst.pm Catalyst/Plugin/URI.pm My/Catalyst/Stuff.pm',
+    },
+    {
+        chunk    => 'with "Some::Role1", "Some::Role2"',
+        expected => 'Some/Role1.pm Some/Role2.pm',
+    },
+    {
+        chunk    => 'with qw(Some::Role1 Some::Role2)',
+        expected => 'Some/Role1.pm Some/Role2.pm',
     },
     {
         chunk    => 'use I18N::LangTags 0.30 ();',

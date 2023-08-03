@@ -33,6 +33,7 @@ use File::Basename;
 
 $ScanFileRE = qr/(?:^|\\|\/)(?:[^.]*|.*\.(?i:p[ml]|t|al))$/;
 
+
 =head1 NAME
 
 Module::ScanDeps - Recursively scan Perl code for dependencies
@@ -223,6 +224,22 @@ But this one does not:
 
 my $SeenTk;
 my %SeenRuntimeLoader;
+
+# match "use LOADER LIST" chunks; sets $1 to LOADER and $2 to LIST
+my $LoaderRE = 
+    qr/^ use \s+ 
+      ( asa
+      | base
+      | parent
+      | prefork
+      | POE
+      | encoding
+      | maybe
+      | only::matching
+      | Mojo::Base
+      | Catalyst
+      )(?!\:) \b \s* (.*)
+      /sx;
 
 # Pre-loaded module dependencies {{{
 my %Preload = (
@@ -933,38 +950,6 @@ sub scan_line {
     return sort keys %found;
 }
 
-# short helpers for scan_chunk
-my %LoaderRegexp; # cache
-
-sub _check_loader {
-    my ($chunk, $loaders, $prefix) = @_;
-    $LoaderRegexp{$loaders} ||= _build_loader_regexp($loaders);
-
-    if (my ($loader, $loadee) = $chunk =~ $LoaderRegexp{$loaders}) {
-        return _extract_loader_dependency($loader, $loadee, $prefix);
-    }
-    return;
-}
-
-sub _build_loader_regexp {
-    my ($loaders) = @_;
-    my $alt = join('|', map { quotemeta($_) }
-                            split(/\s+/, $loaders));
-    return qr/^\s* use \s+ ($alt)(?!\:) \b \s* (.*)/sx;
-}
-
-sub _extract_loader_dependency {
-    my ($loader, $loadee, $prefix) = @_;
-    $prefix = $prefix ? "${prefix}::" : "";
-
-    return [
-        _mod2pm($loader),
-        map { _mod2pm("$prefix$_") }
-            grep { length and !/^q[qw]?$/ and !/-/ }
-                 split /[^\w:-]+/, $loadee
-        #should skip any module name that contains '-', not split it in two
-    ];
-}
 
 sub _mod2pm {
     my $mod = shift;
@@ -991,15 +976,23 @@ sub scan_chunk {
         s/^eval \s+ (?:['"]|qq?\s*\W) \s*//x;
 
         # TODO: There's many more of these "loader" type modules on CPAN!
-        # scan for the typical module-loader modules
-        # grab pre-calculated regexp or re-build it (and cache it)
-        if (my $mods = _check_loader(
-            $_, "asa base parent prefork POE encoding maybe only::matching Mojo::Base")) {
-            return $mods;
-        }
-        if (my $mods = _check_loader(
-            $_, "Catalyst", "Catalyst::Plugin")) {
-            return $mods;
+        if (my ($loader, $list) = $_ =~ $LoaderRE) {
+            # $list should be a comma separated list of string literals and qw() lists:
+            # split $list on anything that's not a word letter (or one of ":", "+" and "-")
+            # and ignore "q", "qq" and "qw"
+            my @mods = grep { length and !/^q[qw]?$/ } 
+                            split /[^\w:+-]+/, $list;
+
+            if ($loader eq "Catalyst") {
+                # "use Catalyst 'Foo'" looks for "Catalyst::Plugin::Foo",
+                # but "use Catalyst +Foo" looks for "Foo"
+                @mods = map {
+                    s/^-// ? ()    # skip it, it's a flag, eg. "-Debug"
+                    : s/^\+// ? $_
+                    : "Catalyst::Plugin::$_" 
+                } @mods;
+            }
+            return [ map { _mod2pm($_) } $loader, @mods ];
         }
 
         if (/^use \s+ Class::Autouse \b \s* (.*)/sx
@@ -1008,6 +1001,13 @@ sub scan_chunk {
                    map { _mod2pm($_) }
                      grep { length and !/^:|^q[qw]?$/ }
                        split(/[^\w:]+/, $1) ];
+        }
+
+        # Moose/Moo/Mouse style inheritance or composition
+        if (s/^(with|extends)\s+//) {
+            return [ map { _mod2pm($_) }
+                         grep { length and !/^:|^q[qw]?$/ }
+                              split(/[^\w:]+/, $_) ];
         }
 
         return _mod2pm($1) if /^(?:use|no) \s+ ([\w:]+)/x; # bareword
