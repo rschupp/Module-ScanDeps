@@ -246,6 +246,7 @@ my %Preload = (
     'AnyDBM_File.pm'                    => [qw( SDBM_File.pm )],
     'AnyEvent.pm'                       => 'sub',
     'Authen/SASL.pm'                    => 'sub',
+
     'B/Hooks/EndOfScope.pm'             =>
         [qw( B/Hooks/EndOfScope/PP.pm B/Hooks/EndOfScope/XS.pm )],
     'Bio/AlignIO.pm'                    => 'sub',
@@ -271,6 +272,7 @@ my %Preload = (
     'Bio/TreeIO.pm'                     => 'sub',
     'Bio/LiveSeq/IO.pm'                 => 'sub',
     'Bio/Variation/IO.pm'               => 'sub',
+
     'Catalyst.pm'                       => sub {
         return ('Catalyst/Runtime.pm',
                 'Catalyst/Dispatcher.pm',
@@ -284,6 +286,7 @@ my %Preload = (
     'Class/Load.pm'                     => [qw( Class/Load/PP.pm )],
     'Class/MakeMethods.pm'              => 'sub',
     'Class/MethodMaker.pm'              => 'sub',
+    'Class/Plain.pm'                    => [qw( XS/Parse/Keyword.pm )],
     'Config/Any.pm'                     =>'sub',
     'Crypt/Random.pm'                   => sub {
         _glob_in_inc('Crypt/Random/Provider', 1);
@@ -291,6 +294,7 @@ my %Preload = (
     'Crypt/Random/Generator.pm'         => sub {
         _glob_in_inc('Crypt/Random/Provider', 1);
     },
+
     'Date/Manip.pm'                     =>
         [qw( Date/Manip/DM5.pm Date/Manip/DM6.pm )],
     'Date/Manip/Base.pm'                => sub {
@@ -345,6 +349,7 @@ my %Preload = (
 
         return 'pod/perldiag.pod';
     },
+
     'Email/Send.pm'                     => 'sub',
     'Event.pm'                          => sub {
         map "Event/$_.pm", qw( idle io signal timer var );
@@ -352,6 +357,7 @@ my %Preload = (
     'ExtUtils/MakeMaker.pm'             => sub {
         grep /\bMM_/, _glob_in_inc('ExtUtils', 1);
     },
+
     'FFI/Platypus.pm'                   => 'sub',
     'File/Basename.pm'                  => [qw( re.pm )],
     'File/BOM.pm'                       => [qw( Encode/Unicode.pm )],
@@ -360,9 +366,14 @@ my %Preload = (
         require File::Spec;
         map { my $name = $_; $name =~ s!::!/!g; "$name.pm" } @File::Spec::ISA;
     },
+    'Future/AsyncAwait.pm'              => [qw( XS/Parse/Keyword.pm )],
+    'Future/AsyncAwait/Hooks.pm'        => [qw( XS/Parse/Keyword.pm )],
+
     'Gtk2.pm'                           => [qw( Cairo.pm )], # Gtk2.pm does: eval "use Cairo;"
+
     'HTTP/Entity/Parser.pm'             => 'sub',
     'HTTP/Message.pm'                   => [qw( URI/URL.pm URI.pm )],
+
     'Image/ExifTool.pm'                 => sub {
         return(
           (map $_->{name}, _glob_in_inc('Image/ExifTool', 0)), # also *.pl files
@@ -381,6 +392,7 @@ my %Preload = (
     )],
     'IO/Socket.pm'                      => [qw( IO/Socket/UNIX.pm )],
     'IUP.pm'                            => 'sub',
+
     'JSON.pm'                           => sub {
         # add JSON/PP*.pm, JSON/PP/*.pm
         # and ignore other JSON::* modules (e.g. JSON/Syck.pm, JSON/Any.pm);
@@ -390,6 +402,8 @@ my %Preload = (
     'JSON/MaybeXS.pm'                   => [qw(
         Cpanel/JSON/XS.pm JSON/XS.pm JSON/PP.pm
     )],
+
+    'List/Keywords.pm'                  => [qw( XS/Parse/Keyword.pm )],
     'List/MoreUtils.pm'                 => 'sub',
     'List/SomeUtils.pm'                 => 'sub',
     'Locale/Maketext/Lexicon.pm'        => 'sub',
@@ -414,6 +428,7 @@ my %Preload = (
           _glob_in_inc("LWP/Protocol", 1),
         );
     },
+
     'Mail/Audit.pm'                     => 'sub',
     'Math/BigInt.pm'                    => 'sub',
     'Math/BigFloat.pm'                  => 'sub',
@@ -447,12 +462,17 @@ my %Preload = (
     'Mojo/IOLoop/TLS.pm'                => sub {        # server.{crt,key}
         map { $_->{name} } _glob_in_inc('Mojo/IOLoop/resources', 0)
     },
+
     'Net/DNS/Resolver.pm'               => 'sub',
     'Net/DNS/RR.pm'                     => 'sub',
     'Net/FTP.pm'                        => 'sub',
     'Net/HTTPS.pm'                      => [qw( IO/Socket/SSL.pm Net/SSL.pm )],
     'Net/Server.pm'                     => 'sub',
     'Net/SSH/Perl.pm'                   => 'sub',
+
+    'Object/Pad.pm'                     => [qw( XS/Parse/Keyword.pm )],
+    'Object/Pad/Keyword/Accessor.pm'    => [qw( XS/Parse/Keyword.pm )],
+
     'Package/Stash.pm'                  => [qw( Package/Stash/PP.pm Package/Stash/XS.pm )],
     'Pango.pm'                          => [qw( Cairo.pm )], # Pango.pm does: eval "use Cairo;"
     'PAR/Repository.pm'                 => 'sub',
@@ -489,10 +509,12 @@ my %Preload = (
           _glob_in_inc('auto/POSIX/SigRt', 0),          # *.al files
     },
     'PPI.pm'                            => 'sub',
+
     'Regexp/Common.pm'                  => 'sub',
     'RPC/XML/ParserFactory.pm'          => sub {
         _glob_in_inc('RPC/XML/Parser', 1);
     },
+
     'SerialJunk.pm'                     => [qw(
         termios.ph asm/termios.ph sys/termiox.ph sys/termios.ph sys/ttycom.ph
     )],
@@ -516,6 +538,13 @@ my %Preload = (
         _glob_in_inc('SVN', 1),
         map { $_->{name} } _glob_in_inc('auto/SVN', 0),    # *.so, *.bs files
     },
+    'Syntax/Keyword/Combine/Keys.pm'    => [qw( XS/Parse/Keyword.pm )],
+    'Syntax/Keyword/Defer.pm'           => [qw( XS/Parse/Keyword.pm )],
+    'Syntax/Keyword/Dynamically.pm'     => [qw( XS/Parse/Keyword.pm )],
+    'Syntax/Keyword/Inplace.pm'         => [qw( XS/Parse/Keyword.pm )],
+    'Syntax/Keyword/Match.pm'           => [qw( XS/Parse/Keyword.pm )],
+    'Syntax/Keyword/Try.pm'             => [qw( XS/Parse/Keyword.pm )],
+
     'Template.pm'                       => 'sub',
     'Term/ReadLine.pm'                  => 'sub',
     'Test/Deep.pm'                      => 'sub',
@@ -535,15 +564,18 @@ my %Preload = (
     'Tk/FBox.pm'                        => [qw( Tk/folder.xpm Tk/file.xpm )],
     'Tk/Getopt.pm'                      => [qw( Tk/openfolder.xpm Tk/win.xbm )],
     'Tk/Toplevel.pm'                    => [qw( Tk/Wm.pm )],
+
     'Unicode/Normalize.pm'              => \&_unicore,
     'Unicode/UCD.pm'                    => \&_unicore,
     'URI.pm'                            => sub { grep !/urn/, _glob_in_inc('URI', 1) },
     'utf8_heavy.pl'                     => \&_unicore,
+
     'Win32/EventLog.pm'                 => [qw( Win32/IPC.pm )],
     'Win32/Exe.pm'                      => 'sub',
     'Win32/TieRegistry.pm'              => [qw( Win32API/Registry.pm )],
     'Win32/SystemInfo.pm'               => [qw( Win32/cpuspd.dll )],
     'Wx.pm'                             => [qw( attributes.pm )],
+
     'XML/Parser.pm'                     => sub {
         _glob_in_inc('XML/Parser/Style', 1),
         _glob_in_inc('XML/Parser/Encodings', 1),
@@ -554,6 +586,8 @@ my %Preload = (
     'XMLRPC/Lite.pm'                    => sub {
         _glob_in_inc('XMLRPC/Transport', 1);
     },
+    'XS/Parse/Keyword/FromPerl.pm'      => [qw( XS/Parse/Keyword.pm )],
+
     'YAML.pm'                           => [qw( YAML/Loader.pm YAML/Dumper.pm )],
     'YAML/Any.pm'                       => sub {
         # try to figure out what YAML::Any would have used
