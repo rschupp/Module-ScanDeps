@@ -985,10 +985,20 @@ sub scan_line {
 }
 
 
+# convert module name to file name
 sub _mod2pm {
     my $mod = shift;
     $mod =~ s!::!/!g;
     return "$mod.pm";
+}
+
+# parse a comma-separated list of string literals and qw() lists
+sub _parse_list {
+    my $list = shift;
+
+    # split $list on anything that's not a word character or ":"
+    # and ignore "q", "qq" and "qw"
+    return grep { length and !/^:|^q[qw]?$/ } split(/[^\w:]+/, $list);
 }
 
 sub scan_chunk {
@@ -1009,21 +1019,21 @@ sub scan_chunk {
         # analyze the string
         s/^eval \s+ (?:['"]|qq?\s*\W) \s*//x;
 
+        # "use LOADER LIST"
         # TODO: There's many more of these "loader" type modules on CPAN!
         if (my ($loader, $list) = $_ =~ $LoaderRE) {
-            # $list should be a comma separated list of string literals and qw() lists:
-            # split $list on anything that's not a word letter (or one of ":", "+" and "-")
-            # and ignore "q", "qq" and "qw"
-            my @mods = grep { length and !/^q[qw]?$/ } 
-                            split /[^\w:+-]+/, $list;
+            my @mods = _parse_list($list);
 
             if ($loader eq "Catalyst") {
                 # "use Catalyst 'Foo'" looks for "Catalyst::Plugin::Foo",
                 # but "use Catalyst +Foo" looks for "Foo"
                 @mods = map {
-                    s/^-// ? ()    # skip it, it's a flag, eg. "-Debug"
-                    : s/^\+// ? $_
-                    : "Catalyst::Plugin::$_" 
+                    ($list =~ /([+-])\Q$_\E(?:$|[^\w:])/)
+                        ? ($1 eq "-" 
+                            ? ()   # "-Foo": it's a flag, eg. "-Debug", skip it
+                            : $_)  # "+Foo": look for "Foo"
+                        : "Catalyst::Plugin::$_"
+                                   # "Foo": look for "Catalyst::Plugin::Foo"
                 } @mods;
             }
             return [ map { _mod2pm($_) } $loader, @mods ];
@@ -1031,25 +1041,19 @@ sub scan_chunk {
 
         if (/^use \s+ Class::Autouse \b \s* (.*)/sx
             or /^Class::Autouse \s* -> \s* autouse \s* (.*)/sx) {
-          return [ 'Class/Autouse.pm',
-                   map { _mod2pm($_) }
-                     grep { length and !/^:|^q[qw]?$/ }
-                       split(/[^\w:]+/, $1) ];
+          return [ map { _mod2pm($_) } "Class::Autouse", _parse_list($1) ];
         }
 
-        # Moose/Moo/Mouse style inheritance or composition
-        if (s/^(with|extends)\s+//) {
-            return [ map { _mod2pm($_) }
-                         grep { length and !/^:|^q[qw]?$/ }
-                              split(/[^\w:]+/, $_) ];
+        # generic "use ..."
+        if (s/^(?:use|no) \s+//x) {
+            my ($mod) = _parse_list($_);                # just the first word
+            return _mod2pm($mod);
         }
-
-        return _mod2pm($1) if /^(?:use|no) \s+ ([\w:]+)/x; # bareword
 
         if (s/^(require|do) [\s(]+//x) {
-            return _mod2pm($1)                          # bareword ("require" only)
-                if $1 eq "require" && /^([\w:]+)/;
-            return $_;                                  # maybe string literal?
+            return ($1 eq "require" && /^([\w:]+)/)
+                ? _mod2pm($1)                           # bareword ("require" only)
+                : $_;                                   # maybe string literal?
         }
 
         if (/(<[^>]*[^\$\w>][^>]*>)/) {
@@ -1057,7 +1061,12 @@ sub scan_chunk {
             return "File/Glob.pm" if $diamond =~ /[*?\[\]{}~\\]/;
         }
 
-        return "DBD/$1.pm"    if /\b[Dd][Bb][Ii]:(\w+):/;
+        return "DBD/$1.pm"    if /\bdbi:(\w+):/i;
+
+        # Moose/Moo/Mouse style inheritance or composition
+        if (s/^(with|extends)\s+//) {
+            return [ map { _mod2pm($_) } _parse_list($_) ];
+        }
 
         # check for stuff like
         #   decode("klingon", ...)
