@@ -66,6 +66,7 @@ test_autosplit(
         Foo::barnie();
 ...
 
+
 my $scanner = create_script(<< '...');
     use Module::ScanDeps;
     my ($file, @args) = @ARGV; 
@@ -79,13 +80,19 @@ my $file = create_script(<< '...');
         Foo::barnie();
 ...
 my @args = qw(fee fo fum);
-my $exp = join("\n", "begin blab", @args, "end blab", "barnie!");
+
+# run $file with @args once and capture its output
+my $exp;
+run3([$^X, $scanner, $file, @args], \undef, \$exp);
+is($?, 0, "script ran successfully");
+my $rx = join(".*", map { quotemeta($_) } @args, "barnie!");
+like($exp, qr/$rx/s, "script output");
+
+# run $scanner on $file with @args
 my ($out, $err);
 run3([$^X, "-Mblib", $scanner, $file, @args], \undef, \$out, \$err);
-chomp($out);
-
-is($?, 0, "script ran successfully");
-is($out, $exp, "expected scrip output");
+is($?, 0, "scanner ran successfully");
+is($out, $exp, "scanner output");
 
 done_testing();
 
