@@ -83,7 +83,7 @@ my @args = qw(fee fo fum);
 
 # run $file with @args once and capture its output
 my $exp;
-run3([$^X, $scanner, $file, @args], \undef, \$exp);
+run3([$^X, $file, @args], \undef, \$exp);
 is($?, 0, "script ran successfully");
 my $rx = join(".*", map { quotemeta($_) } @args, "barnie!");
 like($exp, qr/$rx/s, "script output");
