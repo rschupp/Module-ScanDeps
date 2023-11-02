@@ -1154,8 +1154,9 @@ sub _add_info {
     # matter on a case tolerant system
     if (is_insensitive_fs) {
         if (!exists $rv->{$module}) {
+            my $lc_module  = lc $module;
             foreach my $key (keys %$rv) {
-                if (lc($key) eq lc($module)) {
+                if (lc($key) eq $lc_module) {
                     $module = $key;
                     last;
                 }
@@ -1166,8 +1167,9 @@ sub _add_info {
                 $used_by = $module;
             } else {
                 if (!exists $rv->{$used_by}) {
+                    my $lc_used_by = lc $used_by;
                     foreach my $key (keys %$rv) {
-                        if (lc($key) eq lc($used_by)) {
+                        if (lc($key) eq $lc_used_by) {
                             $used_by = $key;
                             last;
                         }
@@ -1185,11 +1187,13 @@ sub _add_info {
 
     if (defined($used_by) and $used_by ne $module) {
         if (is_insensitive_fs) {
+            my $lc_used_by = lc $used_by;
+            my $lc_module  = lc $module;
             push @{ $rv->{$module}{used_by} }, $used_by
-                if !grep { lc($_) eq lc($used_by) } @{ $rv->{$module}{used_by} };
+                if !grep { lc($_) eq $lc_used_by } @{ $rv->{$module}{used_by} };
             # We assume here that another _add_info will be called to provide the other parts of $rv->{$used_by}
             push @{ $rv->{$used_by}{uses} }, $module
-                if !grep { lc($_) eq lc($module) } @{ $rv->{$used_by}{uses} };
+                if !grep { lc($_) eq $lc_module } @{ $rv->{$used_by}{uses} };
         }
         else {
             push @{ $rv->{$module}{used_by} }, $used_by
