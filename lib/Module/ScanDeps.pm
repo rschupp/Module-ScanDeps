@@ -1184,14 +1184,20 @@ sub _add_info {
     };
 
     if (defined($used_by) and $used_by ne $module) {
-        push @{ $rv->{$module}{used_by} }, $used_by
-          if  ( (!is_insensitive_fs && !grep { $_ eq $used_by } @{ $rv->{$module}{used_by} })
-             or ( is_insensitive_fs && !grep { lc($_) eq lc($used_by) } @{ $rv->{$module}{used_by} }));
-
-        # We assume here that another _add_info will be called to provide the other parts of $rv->{$used_by}
-        push @{ $rv->{$used_by}{uses} }, $module
-          if  ( (!is_insensitive_fs && !grep { $_ eq $module } @{ $rv->{$used_by}{uses} })
-             or ( is_insensitive_fs && !grep { lc($_) eq lc($module) } @{ $rv->{$used_by}{uses} }));
+        if (is_insensitive_fs) {
+            push @{ $rv->{$module}{used_by} }, $used_by
+                if !grep { lc($_) eq lc($used_by) } @{ $rv->{$module}{used_by} };
+            # We assume here that another _add_info will be called to provide the other parts of $rv->{$used_by}
+            push @{ $rv->{$used_by}{uses} }, $module
+                if !grep { lc($_) eq lc($module) } @{ $rv->{$used_by}{uses} };
+        }
+        else {
+            push @{ $rv->{$module}{used_by} }, $used_by
+                if !grep { $_ eq $used_by } @{ $rv->{$module}{used_by} };
+            # We assume here that another _add_info will be called to provide the other parts of $rv->{$used_by}
+            push @{ $rv->{$used_by}{uses} }, $module
+                if !grep { $_ eq $module } @{ $rv->{$used_by}{uses} };
+        }
     }
 }
 
