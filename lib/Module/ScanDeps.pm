@@ -17,6 +17,7 @@ use File::Path ();
 use File::Temp ();
 use FileHandle;
 use Module::Metadata;
+use List::Util qw ( any );
 
 # NOTE: Keep the following imports exactly as specified, even if the Module::ScanDeps source
 # doesn't reference some of them. See '"use lib" idioms' for the reason.
@@ -1190,17 +1191,17 @@ sub _add_info {
             my $lc_used_by = lc $used_by;
             my $lc_module  = lc $module;
             push @{ $rv->{$module}{used_by} }, $used_by
-                if !grep { lc($_) eq $lc_used_by } @{ $rv->{$module}{used_by} };
+                if !any { lc($_) eq $lc_used_by } @{ $rv->{$module}{used_by} };
             # We assume here that another _add_info will be called to provide the other parts of $rv->{$used_by}
             push @{ $rv->{$used_by}{uses} }, $module
-                if !grep { lc($_) eq $lc_module } @{ $rv->{$used_by}{uses} };
+                if !any { lc($_) eq $lc_module } @{ $rv->{$used_by}{uses} };
         }
         else {
             push @{ $rv->{$module}{used_by} }, $used_by
-                if !grep { $_ eq $used_by } @{ $rv->{$module}{used_by} };
+                if !any { $_ eq $used_by } @{ $rv->{$module}{used_by} };
             # We assume here that another _add_info will be called to provide the other parts of $rv->{$used_by}
             push @{ $rv->{$used_by}{uses} }, $module
-                if !grep { $_ eq $module } @{ $rv->{$used_by}{uses} };
+                if !any { $_ eq $module } @{ $rv->{$used_by}{uses} };
         }
     }
 }
