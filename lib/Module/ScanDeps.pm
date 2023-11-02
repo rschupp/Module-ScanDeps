@@ -17,7 +17,7 @@ use File::Path ();
 use File::Temp ();
 use FileHandle;
 use Module::Metadata;
-use List::Util qw ( any );
+use List::Util qw ( any first );
 
 # NOTE: Keep the following imports exactly as specified, even if the Module::ScanDeps source
 # doesn't reference some of them. See '"use lib" idioms' for the reason.
@@ -1156,12 +1156,10 @@ sub _add_info {
     if (is_insensitive_fs) {
         if (!exists $rv->{$module}) {
             my $lc_module  = lc $module;
-            foreach my $key (keys %$rv) {
-                if (lc($key) eq $lc_module) {
-                    $module = $key;
-                    last;
-                }
-            }
+            my $key = first {lc($_) eq $lc_module} keys %$rv;
+            if (defined $key) {
+                $module = $key
+            };
         }
         if (defined($used_by)) {
             if (lc($used_by) eq lc($module)) {
@@ -1169,12 +1167,10 @@ sub _add_info {
             } else {
                 if (!exists $rv->{$used_by}) {
                     my $lc_used_by = lc $used_by;
-                    foreach my $key (keys %$rv) {
-                        if (lc($key) eq $lc_used_by) {
-                            $used_by = $key;
-                            last;
-                        }
-                    }
+                    my $key = first {lc($_) eq $lc_used_by} keys %$rv;
+                    if (defined $key) {
+                        $used_by = $key
+                    };
                 }
             }
         }
