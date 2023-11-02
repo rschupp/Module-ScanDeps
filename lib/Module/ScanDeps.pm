@@ -11,11 +11,6 @@ $VERSION   = '1.35';
 use Config;
 require Exporter;
 our @ISA = qw(Exporter);
-use constant is_insensitive_fs => (
-    -s $0
-        and (-s lc($0) || -1) == (-s uc($0) || -1)
-        and (-s lc($0) || -1) == -s $0
-);
 
 use version;
 use File::Path ();
@@ -30,6 +25,7 @@ use File::Spec;
 use File::Spec::Functions;
 use File::Basename;
 
+use constant is_insensitive_fs => File::Spec->case_tolerant();
 
 $ScanFileRE = qr/(?:^|\\|\/)(?:[^.]*|.*\.(?i:p[ml]|t|al))$/;
 
@@ -1156,7 +1152,7 @@ sub _add_info {
 
     # Avoid duplicates that can arise due to case differences that don't actually
     # matter on a case tolerant system
-    if (File::Spec->case_tolerant()) {
+    if (is_insensitive_fs) {
         foreach my $key (keys %$rv) {
             if (lc($key) eq lc($module)) {
                 $module = $key;
@@ -1185,13 +1181,13 @@ sub _add_info {
 
     if (defined($used_by) and $used_by ne $module) {
         push @{ $rv->{$module}{used_by} }, $used_by
-          if  ( (!File::Spec->case_tolerant() && !grep { $_ eq $used_by } @{ $rv->{$module}{used_by} })
-             or ( File::Spec->case_tolerant() && !grep { lc($_) eq lc($used_by) } @{ $rv->{$module}{used_by} }));
+          if  ( (!is_insensitive_fs && !grep { $_ eq $used_by } @{ $rv->{$module}{used_by} })
+             or ( is_insensitive_fs && !grep { lc($_) eq lc($used_by) } @{ $rv->{$module}{used_by} }));
 
         # We assume here that another _add_info will be called to provide the other parts of $rv->{$used_by}
         push @{ $rv->{$used_by}{uses} }, $module
-          if  ( (!File::Spec->case_tolerant() && !grep { $_ eq $module } @{ $rv->{$used_by}{uses} })
-             or ( File::Spec->case_tolerant() && !grep { lc($_) eq lc($module) } @{ $rv->{$used_by}{uses} }));
+          if  ( (!is_insensitive_fs && !grep { $_ eq $module } @{ $rv->{$used_by}{uses} })
+             or ( is_insensitive_fs && !grep { lc($_) eq lc($module) } @{ $rv->{$used_by}{uses} }));
     }
 }
 
@@ -1672,7 +1668,7 @@ sub _merge_rv {
 
 sub _not_dup {
     my ($key, $rv1, $rv2) = @_;
-    if (File::Spec->case_tolerant()) {
+    if (is_insensitive_fs) {
         return lc(abs_path($rv1->{$key}{file})) ne lc(abs_path($rv2->{$key}{file}));
     }
     else {
