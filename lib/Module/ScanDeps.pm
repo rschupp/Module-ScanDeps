@@ -1153,20 +1153,24 @@ sub _add_info {
     # Avoid duplicates that can arise due to case differences that don't actually
     # matter on a case tolerant system
     if (is_insensitive_fs) {
-        foreach my $key (keys %$rv) {
-            if (lc($key) eq lc($module)) {
-                $module = $key;
-                last;
+        if (!exists $rv->{$module}) {
+            foreach my $key (keys %$rv) {
+                if (lc($key) eq lc($module)) {
+                    $module = $key;
+                    last;
+                }
             }
         }
         if (defined($used_by)) {
             if (lc($used_by) eq lc($module)) {
                 $used_by = $module;
             } else {
-                foreach my $key (keys %$rv) {
-                    if (lc($key) eq lc($used_by)) {
-                        $used_by = $key;
-                        last;
+                if (!exists $rv->{$used_by}) {
+                    foreach my $key (keys %$rv) {
+                        if (lc($key) eq lc($used_by)) {
+                            $used_by = $key;
+                            last;
+                        }
                     }
                 }
             }
