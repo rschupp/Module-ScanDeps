@@ -30,6 +30,8 @@ use constant is_insensitive_fs => File::Spec->case_tolerant();
 
 $ScanFileRE = qr/(?:^|\\|\/)(?:[^.]*|.*\.(?i:p[ml]|t|al))$/;
 
+my %_glob_cache;
+my %_file_cache;
 
 =head1 NAME
 
@@ -1265,8 +1267,16 @@ sub _find_in_inc {
     my $file = shift;
     return unless defined $file;
 
+    #  top level of cache is in case of mid-run changes to @INC
+    my $cache_key = join $Config{path_sep}, (@INC, @IncludeLibs);
+    my $cached_val = $_file_cache{$cache_key}{$file};
+    return $cached_val if $cached_val;
+
     foreach my $dir (grep !/\bBSDPAN\b/, @INC, @IncludeLibs) {
-        return "$dir/$file" if -f "$dir/$file";
+        if (-f "$dir/$file") {
+            $_file_cache{$cache_key}{$file} = "$dir/$file";
+            return "$dir/$file"
+        };
     }
 
     # absolute file names
@@ -1281,6 +1291,11 @@ sub _glob_in_inc {
     require File::Find;
 
     $subdir =~ s/\$CurrentPackage/$CurrentPackage/;
+
+    #  top level of cache is in case of mid-run changes to @INC
+    my $cache_key = join $Config{path_sep}, (@INC, @IncludeLibs);
+    my $cached_val = $_glob_cache{$cache_key}{$subdir};
+    return @$cached_val if $cached_val;
 
     my @files;
     foreach my $inc (grep !/\bBSDPAN\b/, @INC, @IncludeLibs) {
@@ -1302,6 +1317,8 @@ sub _glob_in_inc {
             $dir
         );
     }
+
+    $_glob_cache{$cache_key}{$subdir} = \@files;
 
     return @files;
 }
