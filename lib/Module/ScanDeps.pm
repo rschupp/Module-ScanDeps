@@ -11,17 +11,13 @@ $VERSION   = '1.35';
 use Config;
 require Exporter;
 our @ISA = qw(Exporter);
-use constant is_insensitive_fs => (
-    -s $0
-        and (-s lc($0) || -1) == (-s uc($0) || -1)
-        and (-s lc($0) || -1) == -s $0
-);
 
 use version;
 use File::Path ();
 use File::Temp ();
 use FileHandle;
 use Module::Metadata;
+use List::Util qw ( any first );
 
 # NOTE: Keep the following imports exactly as specified, even if the Module::ScanDeps source
 # doesn't reference some of them. See '"use lib" idioms' for the reason.
@@ -30,6 +26,7 @@ use File::Spec;
 use File::Spec::Functions;
 use File::Basename;
 
+use constant is_insensitive_fs => File::Spec->case_tolerant();
 
 $ScanFileRE = qr/(?:^|\\|\/)(?:[^.]*|.*\.(?i:p[ml]|t|al))$/;
 
@@ -1156,22 +1153,24 @@ sub _add_info {
 
     # Avoid duplicates that can arise due to case differences that don't actually
     # matter on a case tolerant system
-    if (File::Spec->case_tolerant()) {
-        foreach my $key (keys %$rv) {
-            if (lc($key) eq lc($module)) {
-                $module = $key;
-                last;
-            }
+    if (is_insensitive_fs) {
+        if (!exists $rv->{$module}) {
+            my $lc_module  = lc $module;
+            my $key = first {lc($_) eq $lc_module} keys %$rv;
+            if (defined $key) {
+                $module = $key
+            };
         }
         if (defined($used_by)) {
             if (lc($used_by) eq lc($module)) {
                 $used_by = $module;
             } else {
-                foreach my $key (keys %$rv) {
-                    if (lc($key) eq lc($used_by)) {
-                        $used_by = $key;
-                        last;
-                    }
+                if (!exists $rv->{$used_by}) {
+                    my $lc_used_by = lc $used_by;
+                    my $key = first {lc($_) eq $lc_used_by} keys %$rv;
+                    if (defined $key) {
+                        $used_by = $key
+                    };
                 }
             }
         }
@@ -1184,14 +1183,22 @@ sub _add_info {
     };
 
     if (defined($used_by) and $used_by ne $module) {
-        push @{ $rv->{$module}{used_by} }, $used_by
-          if  ( (!File::Spec->case_tolerant() && !grep { $_ eq $used_by } @{ $rv->{$module}{used_by} })
-             or ( File::Spec->case_tolerant() && !grep { lc($_) eq lc($used_by) } @{ $rv->{$module}{used_by} }));
-
-        # We assume here that another _add_info will be called to provide the other parts of $rv->{$used_by}
-        push @{ $rv->{$used_by}{uses} }, $module
-          if  ( (!File::Spec->case_tolerant() && !grep { $_ eq $module } @{ $rv->{$used_by}{uses} })
-             or ( File::Spec->case_tolerant() && !grep { lc($_) eq lc($module) } @{ $rv->{$used_by}{uses} }));
+        if (is_insensitive_fs) {
+            my $lc_used_by = lc $used_by;
+            my $lc_module  = lc $module;
+            push @{ $rv->{$module}{used_by} }, $used_by
+                if !any { lc($_) eq $lc_used_by } @{ $rv->{$module}{used_by} };
+            # We assume here that another _add_info will be called to provide the other parts of $rv->{$used_by}
+            push @{ $rv->{$used_by}{uses} }, $module
+                if !any { lc($_) eq $lc_module } @{ $rv->{$used_by}{uses} };
+        }
+        else {
+            push @{ $rv->{$module}{used_by} }, $used_by
+                if !any { $_ eq $used_by } @{ $rv->{$module}{used_by} };
+            # We assume here that another _add_info will be called to provide the other parts of $rv->{$used_by}
+            push @{ $rv->{$used_by}{uses} }, $module
+                if !any { $_ eq $module } @{ $rv->{$used_by}{uses} };
+        }
     }
 }
 
@@ -1672,7 +1679,7 @@ sub _merge_rv {
 
 sub _not_dup {
     my ($key, $rv1, $rv2) = @_;
-    if (File::Spec->case_tolerant()) {
+    if (is_insensitive_fs) {
         return lc(abs_path($rv1->{$key}{file})) ne lc(abs_path($rv2->{$key}{file}));
     }
     else {

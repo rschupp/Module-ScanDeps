@@ -20,6 +20,7 @@ WriteMakefile1(
       'Module::Metadata' => 0,
       'Text::ParseWords' => 0,
       'version'          => 0,
+      'List::Util' => '1.33',
     },
     TEST_REQUIRES   => {
       'Test::More'       => 0,
