@@ -32,6 +32,7 @@ $ScanFileRE = qr/(?:^|\\|\/)(?:[^.]*|.*\.(?i:p[ml]|t|al))$/;
 
 my %_glob_cache;
 my %_file_cache;
+my $_cached_inc = "";
 
 =head1 NAME
 
@@ -1263,18 +1264,29 @@ sub add_deps {
     return $rv;
 }
 
+# invalidate %_file_cache and %_glob_cache in case @INC changes
+sub _validate_cached_inc
+{
+    my $inc = join("\0", @INC, @IncludeLibs);
+    return if $inc eq $_cached_inc;
+
+    # blow away the caches
+    %_file_cache = ();
+    %_glob_cache = ();
+    $_cached_inc = $inc;
+}
+
 sub _find_in_inc {
     my $file = shift;
     return unless defined $file;
 
-    #  top level of cache is in case of mid-run changes to @INC
-    my $cache_key = join $Config{path_sep}, (@INC, @IncludeLibs);
-    my $cached_val = $_file_cache{$cache_key}{$file};
+    _validate_cached_inc();
+    my $cached_val = $_file_cache{$file};
     return $cached_val if $cached_val;
 
     foreach my $dir (grep !/\bBSDPAN\b/, @INC, @IncludeLibs) {
         if (-f "$dir/$file") {
-            $_file_cache{$cache_key}{$file} = "$dir/$file";
+            $_file_cache{$file} = "$dir/$file";
             return "$dir/$file"
         };
     }
@@ -1292,9 +1304,8 @@ sub _glob_in_inc {
 
     $subdir =~ s/\$CurrentPackage/$CurrentPackage/;
 
-    #  top level of cache is in case of mid-run changes to @INC
-    my $cache_key = join $Config{path_sep}, (@INC, @IncludeLibs);
-    my $cached_val = $_glob_cache{$cache_key}{$subdir};
+    _validate_cached_inc();
+    my $cached_val = $_glob_cache{$subdir};
     return @$cached_val if $cached_val;
 
     my @files;
@@ -1318,7 +1329,7 @@ sub _glob_in_inc {
         );
     }
 
-    $_glob_cache{$cache_key}{$subdir} = \@files;
+    $_glob_cache{$subdir} = \@files;
 
     return @files;
 }
