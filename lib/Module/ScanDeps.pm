@@ -1802,8 +1802,10 @@ The B<scan_deps_runtime> function is contributed by Edward S. Peschko.
 
 You can write to the mailing list at E<lt>par@perl.orgE<gt>, or send an empty
 mail to E<lt>par-subscribe@perl.orgE<gt> to participate in the discussion.
+Archives of the mailing list are available at
+E<lt>https://www.mail-archive.com/par@perl.org/E<gt> or E<lt>https://groups.google.com/g/perl.parE<gt>.
 
-Please submit bug reports to E<lt>bug-Module-ScanDeps@rt.cpan.orgE<gt>.
+Please submit bug reports to E<lt>https://github.com/rschupp/Module-ScanDeps/issuesE<gt>.
 
 =head1 COPYRIGHT
 
