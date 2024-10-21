@@ -868,7 +868,7 @@ sub scan_deps_runtime {
 sub scan_file{
     my $file = shift;
     my %found;
-    open my $fh, $file or die "Cannot open $file: $!";
+    open my $fh, "<", $file or die "Cannot open $file: $!";
 
     $SeenTk = 0;
     # Line-by-line scanning
