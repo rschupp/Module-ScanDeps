@@ -925,7 +925,7 @@ sub scan_line {
           next CHUNK;
         }
 
-        if (my ($pragma, $args) = /^use \s+ (autouse|if) \s+ (.+)/x)
+        if (my ($pragma, $args) = /^(?:use|no) \s+ (autouse|if) \s+ (.+)/x)
         {
             # NOTE: There are different ways the MODULE may
             # be specified for the "autouse" and "if" pragmas, e.g.
@@ -938,7 +938,9 @@ sub scan_line {
             else {
                 # The syntax of the "if" pragma is
                 #   use if COND, MODULE => ARGUMENTS
-                (undef, $module) = _parse_module_list($args);
+                # NOTE: This works only for simple conditions.
+                $args =~ s/.*? (?:,|=>) \s*//x;
+                ($module) = _parse_module_list($args);
             }
             $found{_mod2pm($pragma)}++;
             $found{_mod2pm($module)}++ if $module;
