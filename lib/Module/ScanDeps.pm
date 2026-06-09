@@ -910,7 +910,7 @@ sub scan_line {
         s/^(?:do\s*)?\{\s*//;   # handle single line blocks like 'do { package foo; use xx; }'
         s/\s*\}$//;
 
-        if (/^package\s+(\w+)/) {
+        if (/^package\s+([\w:]+)/) {
             $CurrentPackage = $1;
             $CurrentPackage =~ s{::}{/}g;
             next CHUNK;
@@ -1341,7 +1341,7 @@ sub _glob_in_inc {
 
     require File::Find;
 
-    $subdir =~ s/\$CurrentPackage/$CurrentPackage/;
+    $subdir =~ s/\$CurrentPackage/$CurrentPackage/ if defined $CurrentPackage;
 
     _validate_cached_inc();
     my $cached_val = $_glob_cache{$subdir};
@@ -1380,7 +1380,7 @@ sub _glob_in_inc {
 sub _glob_in_inc_1 {
     my ($subdir, $pm_only) = @_;
 
-    $subdir =~ s/\$CurrentPackage/$CurrentPackage/;
+    $subdir =~ s/\$CurrentPackage/$CurrentPackage/ if defined $CurrentPackage;
 
     my @files;
     foreach my $inc (grep !/\bBSDPAN\b/, @INC, @IncludeLibs) {
