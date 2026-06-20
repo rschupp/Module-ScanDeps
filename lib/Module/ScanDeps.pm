@@ -671,6 +671,7 @@ sub scan_deps {
                 modules => [path_to_inc_name($path, $args{warn_missing})],
                 skip => undef,
                 warn_missing => $args{warn_missing},
+                include_missing => $args{include_missing},
             );
         }
         else {
@@ -793,6 +794,7 @@ sub scan_deps_static {
                      modules => [$pm],
                      skip    => $args->{skip},
                      warn_missing => $args->{warn_missing},
+                     include_missing => $args->{include_missing},
                  );
 
             my @preload = _get_preload($pm) or next;
@@ -803,6 +805,7 @@ sub scan_deps_static {
                      modules => \@preload,
                      skip    => $args->{skip},
                      warn_missing => $args->{warn_missing},
+                     include_missing => $args->{include_missing},
                  );
         }
     }
@@ -1186,12 +1189,13 @@ sub _find_encoding {
 sub _add_info {
     my %args = @_;
     my ($rv, $module, $file, $used_by, $type) = @args{qw/rv module file used_by type/};
-
     return unless defined($module) and defined($file);
 
     # Ensure file is always absolute
-    $file = File::Spec->rel2abs($file);
-    $file =~ s|\\|\/|go;
+    if($file ne 'MISSING') {
+        $file = File::Spec->rel2abs($file);
+        $file =~ s|\\|\/|go;
+    }
 
     # Avoid duplicates that can arise due to case differences that don't actually
     # matter on a case tolerant system
@@ -1256,8 +1260,10 @@ sub add_deps {
     my $used_by = $args{used_by};
 
     foreach my $module (@{ $args{modules} }) {
-        my $file = _find_in_inc($module)
-          or _warn_of_missing_module($module, $args{warn_missing}), next;
+        my $file = _find_in_inc($module, $args{include_missing});
+
+        _warn_of_missing_module($module, $args{warn_missing}) if(!$file || $file eq 'MISSING');
+        next if !$file;
         next if $skip->{$file};
 
         if (exists $rv->{$module}) {
@@ -1317,6 +1323,8 @@ sub _validate_cached_inc
 
 sub _find_in_inc {
     my $file = shift;
+    my $include_missing = shift ? 'MISSING' : '';
+
     return unless defined $file;
 
     _validate_cached_inc();
@@ -1331,9 +1339,7 @@ sub _find_in_inc {
     }
 
     # absolute file names
-    return $file if -f $file;
-
-    return;
+    return -f $file ? $file : $include_missing;
 }
 
 sub _glob_in_inc {
@@ -1698,6 +1704,7 @@ sub _info2rv {
 sub _gettype {
     my $name = shift;
 
+    return 'missing'  if $name eq 'MISSING';
     return 'autoload' if $name =~ /\.(?:ix|al|bs)$/i;
     return 'module'   if $name =~ /\.p[mh]$/i;
     return 'shared'   if $name =~ /\.\Q$Config{dlext}\E$/i;
